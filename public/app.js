@@ -968,7 +968,7 @@ async function loadCart() {
 }
 
 /* ============================================================
-   CHECKOUT, ADDRESS & PAYMENT SYSTEM (PROMPT-PAY FIX)
+   CHECKOUT, ADDRESS & PAYMENT SYSTEM (ULTIMATE PROMPTPAY FIX)
    ============================================================ */
 let selectedPaymentMethod = 'qr';
 let currentCheckoutGrandTotal = 0;
@@ -978,33 +978,38 @@ let qrRemainingSeconds = 300;
 // เบอร์พร้อมเพย์ของเฮีย
 const PROMPTPAY_NUMBER = '0621485603'; 
 
-// ฟังก์ชันสร้างชุดข้อมูลพร้อมเพย์มาตรฐาน EMV Co (รองรับยอดเงินอัตโนมัติ)
+// ฟังก์ชันสร้างชุดข้อมูลพร้อมเพย์มาตรฐาน EMV Co (Dynamic QR พร้อมฝังยอดเงิน)
 function generatePromptPayPayload(mobileNumber, amount) {
   let target = mobileNumber.trim();
+  
+  // แปลงเบอร์มือถือ 10 หลัก เป็นรูปแบบสากล (66 ตามด้วยเบอร์ตัด 0 ตัวแรก)
   if (target.startsWith('0')) {
     target = '66' + target.substring(1);
   }
   
-  // Format เบอร์มือถือ Tag 29
-  let targetField = '0016A000000677010101' + target;
+  // AID สำหรับพร้อมเพย์เบอร์โทรศัพท์มือถือ (A000000677010101) ตามมาตรฐาน กสทช. / ธปท.
+  let targetField = '0016A0000006770101010211' + target;
   let merchantAccount = '00' + ('0' + targetField.length).slice(-2) + targetField;
   let merchantTag = '29' + ('0' + merchantAccount.length).slice(-2) + merchantAccount;
 
   let data = 
-    '000201' + // Payload Format Indicator
-    '010212' + // Initiation Method (12 = Dynamic QR)
+    '000201' + // Payload Format Indicator (Version 01)
+    '010212' + // Point of Initiation Method (12 = Dynamic QR มีการกำหนดจำนวนเงิน)
     merchantTag + 
-    '5303764' + // Currency (THB)
-    '5802TH';   // Country Code
+    '5303764' + // Transaction Currency (764 = THB)
+    '5802TH' +   // Country Code (TH)
+    '5913BOXIE MARKET'; // Merchant Name (ชื่อร้านค้า)
 
+  // กำหนดจำนวนเงินสุทธิ (Tag 54)
   if (amount && amount > 0) {
     let amtStr = Number(amount).toFixed(2);
     data += '54' + ('0' + amtStr.length).slice(-2) + amtStr;
   }
 
+  // ปิดท้ายด้วย Tag CRC16
   data += '6304';
 
-  // คำนวณ CRC16
+  // คำนวณรหัส CRC16 (CCITT-FALSE)
   let crc = 0xFFFF;
   for (let i = 0; i < data.length; i++) {
     crc ^= data.charCodeAt(i) << 8;
@@ -1182,7 +1187,7 @@ window.closeCheckoutModal = function() {
   document.getElementById('checkoutModal').style.display = 'none';
 };
 
-// สลับช่องทางชำระเงิน (ปรับใช้บริการ API เจน QR ที่รองรับ EMV Co สมบูรณ์ที่สุด)
+// สลับช่องทางชำระเงิน
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1205,7 +1210,6 @@ window.selectPaymentMethod = function(method) {
     }
 
     const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, currentCheckoutGrandTotal);
-    // เปลี่ยนมาใช้ API ตัวสร้าง QR มาตรฐานที่รองรับการอ่านค่าลึกของแอปธนาคารไทย
     const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(payload)}&ecc=M`;
 
     detailBox.innerHTML = `
