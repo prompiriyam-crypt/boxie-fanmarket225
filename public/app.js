@@ -1846,10 +1846,10 @@ window.openAdminModal = async function() {
               </div>
             </div>
 
-            <!-- 🧾 ประวัติการขาย (เอา ออกสะอาดเกลี้ยง) -->
+            <!-- 🧾 ประวัติการขาย -->
             <div style="background: #121216; padding: 16px; border-radius: 10px; border: 1px solid #333; display: flex; flex-direction: column;">
               
-              <!-- แถบตัวกรอง (Filter Bar) แบบตั้งค่าเริ่มต้นให้แสดงทั้งหมด ไม่ให้ข้อมูลหาย -->
+              <!-- แถบตัวกรอง (Filter Bar) -->
               <div style="background: #262633; padding: 12px; border-radius: 8px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #444;">
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px;">
                   <b style="color: #fff;">สรุปการขายประจำวัน</b>
@@ -1899,7 +1899,7 @@ window.openAdminModal = async function() {
                 </div>
               </div>
 
-              <!-- ตารางประวัติการขาย -->
+              <!-- ตารางประวัติการขาย (ลบคอลัมน์ "ลบ" ออกเรียบร้อย) -->
               <div style="max-height: 280px; overflow-y: auto; border-radius: 6px; border: 1px solid #333;">
                 <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 11px;">
                   <thead>
@@ -1914,7 +1914,7 @@ window.openAdminModal = async function() {
                       <th style="padding: 8px 8px; text-align: right; border-right: 1px solid rgba(255,255,255,0.2);">รวมสุทธิ</th>
                       <th style="padding: 8px 8px; text-align: right; border-right: 1px solid rgba(255,255,255,0.2);">กำไร</th>
                       <th style="padding: 8px 8px; text-align: center; border-right: 1px solid rgba(255,255,255,0.2);">วัน/เดือน/ปี และเวลา</th>
-                      <th style="padding: 8px 6px; text-align: center; width: 75px;">รายละเอียด</th>
+                      <th style="padding: 8px 6px; text-align: center; width: 85px;">รายละเอียด</th>
                     </tr>
                   </thead>
                   <tbody id="adminSalesHistoryTableBody">
@@ -1942,8 +1942,12 @@ window.openAdminModal = async function() {
       </div>
     </div>
   `;
-  
+
   document.body.insertAdjacentHTML('beforeend', modalHtml);
+  
+  if (typeof window.loadAdminOrdersData === 'function') {
+    window.loadAdminOrdersData();
+  }
 
   // เติมตัวเลือกวันและปีในฟิลเตอร์อัตโนมัติ
   const daySelect = document.getElementById('filterDay');
