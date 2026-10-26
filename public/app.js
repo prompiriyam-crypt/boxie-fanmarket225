@@ -976,7 +976,7 @@ let qrTimerInterval = null;
 let qrRemainingSeconds = 300;
 
 // ⚠️ ใส่เลขอ้างอิงพร้อมเพย์ของคุณตรงนี้ (เลขบัตรประชาชน 13 หลัก)
-const PROMPTPAY_NUMBER = '1479900748136'; 
+const PROMPTPAY_NUMBER = '0621485603'; 
 
 // ฟังก์ชันช่วยคำนวณ CRC16 สำหรับสร้างชุดข้อมูลพร้อมเพย์ (EMV Co) ฝั่ง JS
 function generatePromptPayPayload(id, amount) {
