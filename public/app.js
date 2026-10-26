@@ -968,8 +968,9 @@ async function loadCart() {
 }
 
 /* ============================================================
-   CHECKOUT, ADDRESS & PAYMENT SYSTEM (FINAL HYBRID QR & ACTION)
+   BOXIE OFFICIAL STORE - MAIN APPLICATION SCRIPT (FULL VERSION)
    ============================================================ */
+
 let selectedPaymentMethod = 'qr';
 let currentCheckoutGrandTotal = 0;
 let qrTimerInterval = null;
@@ -980,6 +981,9 @@ const PROMPTPAY_NUMBER = '0621485603';
 const KTB_ACCOUNT = '661-8-00721-6';
 const ACCOUNT_NAME = 'นาย พรหมพิริยะ มหินกอง';
 
+/* ------------------------------------------------------------
+   1. USER ADDRESS & SHIPPING MANAGEMENT
+   ------------------------------------------------------------ */
 function getUserShippingAddress() {
   if (!currentUser) return null;
   const saved = localStorage.getItem(`boxie_addr_${currentUser.id}`);
@@ -992,16 +996,22 @@ function renderAddressBox() {
   const displayView = document.getElementById('addressDisplayView');
   const editView = document.getElementById('addressEditView');
 
+  if (!displayView || !editView) return;
+
   if (!addr || !addr.phone || !addr.address) {
-    document.getElementById('inputRecipientName').value = (currentUser && currentUser.username) || '';
-    document.getElementById('inputRecipientPhone').value = '';
-    document.getElementById('inputRecipientAddress').value = '';
+    const nameInput = document.getElementById('inputRecipientName');
+    if (nameInput) nameInput.value = (currentUser && currentUser.username) || '';
     displayView.style.display = 'none';
     editView.style.display = 'flex';
   } else {
-    document.getElementById('displayRecipientName').textContent = addr.name;
-    document.getElementById('displayRecipientPhone').textContent = addr.phone;
-    document.getElementById('displayRecipientAddress').textContent = addr.address;
+    const nameEl = document.getElementById('displayRecipientName');
+    const phoneEl = document.getElementById('displayRecipientPhone');
+    const addressEl = document.getElementById('displayRecipientAddress');
+    
+    if (nameEl) nameEl.textContent = addr.name;
+    if (phoneEl) phoneEl.textContent = addr.phone;
+    if (addressEl) addressEl.textContent = addr.address;
+
     displayView.style.display = 'block';
     editView.style.display = 'none';
   }
@@ -1012,10 +1022,17 @@ window.toggleEditAddress = function() {
   const editView = document.getElementById('addressEditView');
   const addr = getUserShippingAddress();
 
+  if (!displayView || !editView) return;
+
   if (editView.style.display === 'none') {
-    document.getElementById('inputRecipientName').value = (addr && addr.name) || '';
-    document.getElementById('inputRecipientPhone').value = (addr && addr.phone) || '';
-    document.getElementById('inputRecipientAddress').value = (addr && addr.address) || '';
+    const nameInput = document.getElementById('inputRecipientName');
+    const phoneInput = document.getElementById('inputRecipientPhone');
+    const addressInput = document.getElementById('inputRecipientAddress');
+
+    if (nameInput) nameInput.value = (addr && addr.name) || '';
+    if (phoneInput) phoneInput.value = (addr && addr.phone) || '';
+    if (addressInput) addressInput.value = (addr && addr.address) || '';
+
     displayView.style.display = 'none';
     editView.style.display = 'flex';
   } else {
@@ -1026,9 +1043,13 @@ window.toggleEditAddress = function() {
 
 window.saveAddress = function() {
   if (!currentUser) return;
-  const name = document.getElementById('inputRecipientName').value.trim();
-  const phone = document.getElementById('inputRecipientPhone').value.trim();
-  const address = document.getElementById('inputRecipientAddress').value.trim();
+  const nameInput = document.getElementById('inputRecipientName');
+  const phoneInput = document.getElementById('inputRecipientPhone');
+  const addressInput = document.getElementById('inputRecipientAddress');
+
+  const name = nameInput ? nameInput.value.trim() : '';
+  const phone = phoneInput ? phoneInput.value.trim() : '';
+  const address = addressInput ? addressInput.value.trim() : '';
 
   if (!name || !phone || !address) {
     alert('กรุณากรอกข้อมูลชื่อ เบอร์โทร และที่อยู่ให้ครบถ้วนครับ');
@@ -1040,6 +1061,9 @@ window.saveAddress = function() {
   renderAddressBox();
 };
 
+/* ------------------------------------------------------------
+   2. QR CODE TIMER & EXPIRATION SYSTEM
+   ------------------------------------------------------------ */
 function startQrTimer() {
   clearInterval(qrTimerInterval);
   qrRemainingSeconds = 300;
@@ -1078,10 +1102,15 @@ function handleQrExpired() {
   }
 }
 
+/* ------------------------------------------------------------
+   3. CHECKOUT MODAL & CART CALCULATIONS
+   ------------------------------------------------------------ */
 window.openCheckoutModal = async function() {
   if (!currentUser) {
     alert('กรุณาเข้าสู่ระบบก่อนทำการชำระเงิน');
-    window.openAuthModal('login');
+    if (typeof window.openAuthModal === 'function') {
+      window.openAuthModal('login');
+    }
     return;
   }
 
@@ -1096,21 +1125,25 @@ window.openCheckoutModal = async function() {
       return;
     }
 
-    const totalCount = data.items.reduce((sum, item) => sum + item.quantity, 0);
-    document.getElementById('checkoutTotalCount').textContent = totalCount;
+    const totalCountEl = document.getElementById('checkoutTotalCount');
+    if (totalCountEl) {
+      totalCountEl.textContent = data.items.reduce((sum, item) => sum + item.quantity, 0);
+    }
 
     const list = document.getElementById('checkoutItemsList');
-    list.innerHTML = data.items.map(item => `
-      <div style="display:flex; justify-content:space-between; align-items:center; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 12px;">
-        <div style="text-align: left;">
-          <div style="font-weight: 600;">${item.title}</div>
-          <div style="color: #888; font-size: 11px;">฿${Number(item.price).toLocaleString()} × ${item.quantity}</div>
+    if (list) {
+      list.innerHTML = data.items.map(item => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 12px;">
+          <div style="text-align: left;">
+            <div style="font-weight: 600;">${item.title}</div>
+            <div style="color: #888; font-size: 11px;">฿${Number(item.price).toLocaleString()} × ${item.quantity}</div>
+          </div>
+          <div style="font-weight: 700; color: var(--primary-pink);">
+            ฿ ${(item.price * item.quantity).toLocaleString()}
+          </div>
         </div>
-        <div style="font-weight: 700; color: var(--primary-pink);">
-          ฿ ${(item.price * item.quantity).toLocaleString()}
-        </div>
-      </div>
-    `).join('');
+      `).join('');
+    }
 
     const shipping = 50;
     const subtotal = Number(data.total) || 0;
@@ -1124,12 +1157,15 @@ window.openCheckoutModal = async function() {
     if (vatEl) vatEl.textContent = `฿ ${vat.toLocaleString()}`;
 
     const grandEl = document.getElementById('checkoutGrandtotal');
-    if (grandEl) grandEl.textContent = `฿ ${grandEl.toLocaleString()}`;
+    if (grandEl) grandEl.textContent = `฿ ${currentCheckoutGrandTotal.toLocaleString()}`;
 
-    document.getElementById('checkoutGrandTotal').textContent = `฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}`;
+    const grandTotalBottomEl = document.getElementById('checkoutGrandTotal');
+    if (grandTotalBottomEl) grandTotalBottomEl.textContent = `฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}`;
 
     window.selectPaymentMethod('qr');
-    document.getElementById('checkoutModal').style.display = 'flex';
+    
+    const checkoutModal = document.getElementById('checkoutModal');
+    if (checkoutModal) checkoutModal.style.display = 'flex';
   } catch (err) {
     console.error('Checkout error:', err);
   }
@@ -1137,19 +1173,42 @@ window.openCheckoutModal = async function() {
 
 window.closeCheckoutModal = function() {
   clearInterval(qrTimerInterval);
-  document.getElementById('checkoutModal').style.display = 'none';
+  const checkoutModal = document.getElementById('checkoutModal');
+  if (checkoutModal) checkoutModal.style.display = 'none';
 };
 
-// ฟังก์ชันช่วยคัดลอกข้อความและแจ้งเตือนเฮีย
+/* ------------------------------------------------------------
+   4. UTILITY & APP LAUNCHER ACTIONS
+   ------------------------------------------------------------ */
 window.copyToClipboard = function(text, label) {
   navigator.clipboard.writeText(text).then(() => {
-    alert(`คัดลอก${label} (${text}) เรียบร้อยแล้วครับ! สามารถนำไปวางโอนในแอปได้เลย`);
+    alert(`คัดลอก${label} (${text}) เรียบร้อยแล้วครับ! นำไปวางในแอปธนาคารเพื่อโอนได้เลย`);
   }).catch(err => {
     console.error('Copy failed', err);
   });
 };
 
-// สลับช่องทางชำระเงิน (แสดงรูป QR ของเฮีย + ปุ่มทางลัดเปิดแอปและคัดลอกยอด)
+window.openBankingApp = function(appName) {
+  navigator.clipboard.writeText(currentCheckoutGrandTotal).then(() => {
+    if (appName === 'ktb') {
+      alert(`คัดลอกยอดเงิน ${currentCheckoutGrandTotal} บาทแล้ว! กำลังเปิดแอป Krungthai NEXT...`);
+      window.location.href = 'krungthainext://';
+      setTimeout(() => {
+        window.open('https://krungthai.com/th/personal/kay-service/krungthai-next', '_blank');
+      }, 500);
+    } else if (appName === 'true') {
+      alert(`คัดลอกยอดเงิน ${currentCheckoutGrandTotal} บาทแล้ว! กำลังเปิดแอป TrueMoney...`);
+      window.location.href = 'truemoneywallet://';
+      setTimeout(() => {
+        window.open('https://www.truemoney.com', '_blank');
+      }, 500);
+    }
+  });
+};
+
+/* ------------------------------------------------------------
+   5. PAYMENT METHOD SWITCHER (QR .JPG & BANK ACCOUNTS)
+   ------------------------------------------------------------ */
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1165,6 +1224,8 @@ window.selectPaymentMethod = function(method) {
     }
   });
 
+  if (!detailBox) return;
+
   if (method === 'qr') {
     if (cardQr) {
       cardQr.style.borderColor = 'var(--primary-pink)';
@@ -1177,21 +1238,21 @@ window.selectPaymentMethod = function(method) {
       </div>
       <div id="qrDisplayContainer" style="display: flex; justify-content: center; align-items: center;">
         <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block; text-align: center; border: 2px solid #003366; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-          <!-- ใช้รูป QR จริงของเฮียที่ส่งมา -->
-          <img src="/images/my-promptpay.png" alt="PromptPay QR" style="width: 145px; height: auto; display: block; margin: 0 auto; border-radius: 4px;" onerror="this.src='https://promptpay.io/${PROMPTPAY_NUMBER}.png'">
+          <!-- ดึงรูป QR สกุล .jpg ของเฮียมาแสดงผล -->
+          <img src="/images/my-promptpay.jpg" alt="PromptPay QR" style="width: 140px; height: auto; display: block; margin: 0 auto; border-radius: 4px;" onerror="this.src='https://promptpay.io/${PROMPTPAY_NUMBER}.png'">
         </div>
       </div>
-      <div style="margin-top: 6px; font-size: 14px; font-weight: 800; color: #ff4081; background: rgba(255,64,129,0.08); padding: 4px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; padding-left: 10px; padding-right: 10px;">
+      <div style="margin-top: 6px; font-size: 13px; font-weight: 800; color: #ff4081; background: rgba(255,64,129,0.08); padding: 4px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; padding-left: 10px; padding-right: 10px;">
         <span>ยอดชำระ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}</span>
         <button onclick="window.copyToClipboard('${currentCheckoutGrandTotal}', 'ยอดเงิน')" style="background: var(--primary-pink); color: white; border: none; padding: 2px 8px; font-size: 10px; border-radius: 4px; cursor: pointer; font-weight: 600;">📋 คัดลอกยอด</button>
       </div>
       
-      <!-- ปุ่มทางลัดเปิดแอปธนาคาร/วอลเล็ท -->
+      <!-- ปุ่มทางลัดเปิดแอปด่วนและคัดลอกยอดอัตโนมัติ -->
       <div style="display: flex; gap: 6px; margin-top: 6px; width: 100%;">
-        <a href="https://krungthai.com" target="_blank" style="flex: 1; padding: 6px; background: #00a8e8; color: white; text-align: center; font-size: 11px; font-weight: 700; border-radius: 6px; text-decoration: none; box-shadow: 0 2px 6px rgba(0,168,232,0.3);">📱 เปิด Krungthai NEXT</a>
-        <a href="https://www.truemoney.com" target="_blank" style="flex: 1; padding: 6px; background: #ff8200; color: white; text-align: center; font-size: 11px; font-weight: 700; border-radius: 6px; text-decoration: none; box-shadow: 0 2px 6px rgba(255,130,0,0.3);">💳 เปิด TrueMoney</a>
+        <button onclick="window.openBankingApp('ktb')" style="flex: 1; padding: 6px; background: #00a8e8; color: white; border: none; text-align: center; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,168,232,0.3);">📱 เปิด Krungthai NEXT</button>
+        <button onclick="window.openBankingApp('true')" style="flex: 1; padding: 6px; background: #ff8200; color: white; border: none; text-align: center; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 6px rgba(255,130,0,0.3);">💳 เปิด TrueMoney</button>
       </div>
-      <div style="font-size: 9px; color: #aaa; margin-top: 3px; text-align: center;">สแกน QR ผ่านแอปธนาคาร หรือกดปุ่มคัดลอกยอดเพื่อโอนได้ทันที</div>
+      <div style="font-size: 9px; color: #aaa; margin-top: 3px; text-align: center;">สแกน QR ผ่านแอปธนาคาร หรือกดปุ่มเปิดแอป (ระบบจะคัดลอกยอดเงินให้อัตโนมัติ)</div>
     `;
 
     startQrTimer();
