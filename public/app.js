@@ -1194,7 +1194,7 @@ window.closeCheckoutModal = function() {
   document.getElementById('checkoutModal').style.display = 'none';
 };
 
-// สลับช่องทางชำระเงิน (มีทั้ง QR 13 หลัก, กรุงไทย และ วอลเล็ท ครบถ้วน)
+// สลับช่องทางชำระเงิน
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1217,7 +1217,8 @@ window.selectPaymentMethod = function(method) {
     }
 
     const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, currentCheckoutGrandTotal);
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(payload)}`;
+    // เปลี่ยนมาใช้ API Google Chart ที่รองรับการสแกนพร้อมเพย์ได้เสถียรที่สุด
+    const qrUrl = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(payload)}&choe=UTF-8`;
 
     detailBox.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; margin-bottom: 6px; color: #ffeb3b; font-weight: 600;">
