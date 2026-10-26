@@ -1177,9 +1177,9 @@ window.closeCheckoutModal = function() {
   if (checkoutModal) checkoutModal.style.display = 'none';
 };
 
-/* ------------------------------------------------------------
-   4. PAYMENT METHOD SWITCHER (PURE CLEAN QR DISPLAY)
-   ------------------------------------------------------------ */
+/* ============================================================
+   PAYMENT METHOD SWITCHER (CLEAN & NO CITE TEXT)
+   ============================================================ */
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1209,7 +1209,7 @@ window.selectPaymentMethod = function(method) {
       </div>
       <div id="qrDisplayContainer" style="display: flex; justify-content: center; align-items: center;">
         <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block; text-align: center; border: 2px solid #003366; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-          <!-- รูป QR .jpg ของเฮียแบบเต็มๆ สะอาดตา ไม่มีปุ่มอะไรทั้งสิ้น -->
+          <!-- รูป QR Code .jpg ของเฮียแบบคลีนๆ -->
           <img src="/images/my-promptpay.jpg" alt="PromptPay QR" style="width: 150px; height: auto; display: block; margin: 0 auto; border-radius: 4px;" onerror="this.src='https://promptpay.io/${PROMPTPAY_NUMBER}.png'">
         </div>
       </div>
