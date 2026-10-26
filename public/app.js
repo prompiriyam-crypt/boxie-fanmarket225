@@ -968,14 +968,14 @@ async function loadCart() {
 }
 
 /* ============================================================
-   CHECKOUT, ADDRESS & PAYMENT SYSTEM (HYBRID DEEP-LINK & REAL QR)
+   CHECKOUT, ADDRESS & PAYMENT SYSTEM (FINAL HYBRID QR & ACTION)
    ============================================================ */
 let selectedPaymentMethod = 'qr';
 let currentCheckoutGrandTotal = 0;
 let qrTimerInterval = null;
 let qrRemainingSeconds = 300;
 
-// เบอร์พร้อมเพย์และข้อมูลบัญชีของเฮีย (นาย พรหมพิริยะ มหินกอง)
+// ข้อมูลบัญชีของเฮีย (นาย พรหมพิริยะ มหินกอง)
 const PROMPTPAY_NUMBER = '0621485603'; 
 const KTB_ACCOUNT = '661-8-00721-6';
 const ACCOUNT_NAME = 'นาย พรหมพิริยะ มหินกอง';
@@ -1067,7 +1067,7 @@ function handleQrExpired() {
   const box = document.getElementById('qrDisplayContainer');
   if (box) {
     box.innerHTML = `
-      <div style="width: 130px; height: 130px; background: rgba(255,255,255,0.05); border: 2px dashed #ff4081; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;">
+      <div style="width: 140px; height: 140px; background: rgba(255,255,255,0.05); border: 2px dashed #ff4081; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;">
         <span style="font-size: 24px;">⏳</span>
         <span style="font-size: 11px; color: #ff4081; font-weight: 700;">QR หมดอายุแล้ว</span>
       </div>
@@ -1140,7 +1140,16 @@ window.closeCheckoutModal = function() {
   document.getElementById('checkoutModal').style.display = 'none';
 };
 
-// สลับช่องทางชำระเงิน (ใช้ QR จริงของเฮีย + เพิ่มปุ่มเปิดแอปจ่ายเงินด่วน)
+// ฟังก์ชันช่วยคัดลอกข้อความและแจ้งเตือนเฮีย
+window.copyToClipboard = function(text, label) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert(`คัดลอก${label} (${text}) เรียบร้อยแล้วครับ! สามารถนำไปวางโอนในแอปได้เลย`);
+  }).catch(err => {
+    console.error('Copy failed', err);
+  });
+};
+
+// สลับช่องทางชำระเงิน (แสดงรูป QR ของเฮีย + ปุ่มทางลัดเปิดแอปและคัดลอกยอด)
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1167,21 +1176,22 @@ window.selectPaymentMethod = function(method) {
           กรุณาโอนภายใน: <span id="qrCountdownText" style="background: rgba(255,235,59,0.15); padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: monospace;">05:00</span>
       </div>
       <div id="qrDisplayContainer" style="display: flex; justify-content: center; align-items: center;">
-        <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block; text-align: center; border: 2px solid #003366;">
-          <div style="font-size: 9px; font-weight: 700; color: #003366; margin-bottom: 3px; border-bottom: 1px solid #ddd; padding-bottom: 2px;">THAI QR PAYMENT | พร้อมเพย์</div>
-          <!-- ใช้รูป QR จริงของเฮียที่เคยส่งให้ -->
-          <img src="/images/my-promptpay.png" alt="PromptPay QR" style="width: 125px; height: 125px; display: block; margin: 0 auto; object-fit: contain;" onerror="this.src='https://promptpay.io/${PROMPTPAY_NUMBER}.png'">
-          <div style="font-size: 8px; color: #333; margin-top: 3px; font-weight: 700;">${ACCOUNT_NAME}</div>
+        <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block; text-align: center; border: 2px solid #003366; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+          <!-- ใช้รูป QR จริงของเฮียที่ส่งมา -->
+          <img src="/images/my-promptpay.png" alt="PromptPay QR" style="width: 145px; height: auto; display: block; margin: 0 auto; border-radius: 4px;" onerror="this.src='https://promptpay.io/${PROMPTPAY_NUMBER}.png'">
         </div>
       </div>
-      <div style="margin-top: 5px; font-size: 13px; font-weight: 700; color: #ff4081;">
-        ยอดชำระที่ต้องโอน: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}
+      <div style="margin-top: 6px; font-size: 14px; font-weight: 800; color: #ff4081; background: rgba(255,64,129,0.08); padding: 4px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; padding-left: 10px; padding-right: 10px;">
+        <span>ยอดชำระ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}</span>
+        <button onclick="window.copyToClipboard('${currentCheckoutGrandTotal}', 'ยอดเงิน')" style="background: var(--primary-pink); color: white; border: none; padding: 2px 8px; font-size: 10px; border-radius: 4px; cursor: pointer; font-weight: 600;">📋 คัดลอกยอด</button>
       </div>
+      
+      <!-- ปุ่มทางลัดเปิดแอปธนาคาร/วอลเล็ท -->
       <div style="display: flex; gap: 6px; margin-top: 6px; width: 100%;">
-        <a href="https://krungthai.com" target="_blank" style="flex: 1; padding: 5px; background: #00a8e8; color: white; text-align: center; font-size: 10px; font-weight: 700; border-radius: 6px; text-decoration: none;">📱 เปิด Krungthai NEXT</a>
-        <a href="https://www.truemoney.com" target="_blank" style="flex: 1; padding: 5px; background: #ff8200; color: white; text-align: center; font-size: 10px; font-weight: 700; border-radius: 6px; text-decoration: none;">💳 เปิด TrueMoney</a>
+        <a href="https://krungthai.com" target="_blank" style="flex: 1; padding: 6px; background: #00a8e8; color: white; text-align: center; font-size: 11px; font-weight: 700; border-radius: 6px; text-decoration: none; box-shadow: 0 2px 6px rgba(0,168,232,0.3);">📱 เปิด Krungthai NEXT</a>
+        <a href="https://www.truemoney.com" target="_blank" style="flex: 1; padding: 6px; background: #ff8200; color: white; text-align: center; font-size: 11px; font-weight: 700; border-radius: 6px; text-decoration: none; box-shadow: 0 2px 6px rgba(255,130,0,0.3);">💳 เปิด TrueMoney</a>
       </div>
-      <div style="font-size: 9px; color: #888; margin-top: 3px;">(สแกน QR หรือคัดลอกยอดไปโอนผ่านแอปได้ทันที)</div>
+      <div style="font-size: 9px; color: #aaa; margin-top: 3px; text-align: center;">สแกน QR ผ่านแอปธนาคาร หรือกดปุ่มคัดลอกยอดเพื่อโอนได้ทันที</div>
     `;
 
     startQrTimer();
@@ -1200,11 +1210,15 @@ window.selectPaymentMethod = function(method) {
         <div style="font-size: 11px; color: #888; margin-bottom: 6px;">โอนผ่าน Krungthai NEXT / ตู้ ATM</div>
         <div style="background: rgba(0,168,232,0.08); border: 1px solid rgba(0,168,232,0.3); border-radius: 8px; padding: 10px; width: 100%; box-sizing: border-box;">
           <div style="font-size: 10px; color: #aaa;">เลขที่บัญชี:</div>
-          <div style="font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #fff;">${KTB_ACCOUNT}</div>
+          <div style="font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
+            <span>${KTB_ACCOUNT}</span>
+            <button onclick="window.copyToClipboard('${KTB_ACCOUNT}', 'เลขบัญชี')" style="background: #00a8e8; color: white; border: none; padding: 2px 6px; font-size: 10px; border-radius: 4px; cursor: pointer;">คัดลอก</button>
+          </div>
           <div style="font-size: 11px; color: #ccc; margin-top: 2px;">ชื่อบัญชี: ${ACCOUNT_NAME}</div>
         </div>
-        <div style="font-size: 13px; font-weight: 700; color: #ff4081; margin-top: 6px;">
-          ยอดโอนสุทธิ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}
+        <div style="font-size: 13px; font-weight: 700; color: #ff4081; margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+          <span>ยอดโอนสุทธิ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}</span>
+          <button onclick="window.copyToClipboard('${currentCheckoutGrandTotal}', 'ยอดเงิน')" style="background: var(--primary-pink); color: white; border: none; padding: 2px 6px; font-size: 10px; border-radius: 4px; cursor: pointer;">คัดลอกยอด</button>
         </div>
       `;
 
@@ -1219,11 +1233,15 @@ window.selectPaymentMethod = function(method) {
         <div style="font-size: 11px; color: #888; margin-bottom: 6px;">โอนผ่านแอป TrueMoney Wallet</div>
         <div style="background: rgba(255,130,0,0.08); border: 1px solid rgba(255,130,0,0.3); border-radius: 8px; padding: 10px; width: 100%; box-sizing: border-box;">
           <div style="font-size: 10px; color: #aaa;">เบอร์ทรูมันนี่:</div>
-          <div style="font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #fff;">${PROMPTPAY_NUMBER}</div>
+          <div style="font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
+            <span>${PROMPTPAY_NUMBER}</span>
+            <button onclick="window.copyToClipboard('${PROMPTPAY_NUMBER}', 'เบอร์วอลเล็ท')" style="background: #ff8200; color: white; border: none; padding: 2px 6px; font-size: 10px; border-radius: 4px; cursor: pointer;">คัดลอก</button>
+          </div>
           <div style="font-size: 11px; color: #ccc; margin-top: 2px;">ชื่อบัญชี: ${ACCOUNT_NAME}</div>
         </div>
-        <div style="font-size: 13px; font-weight: 700; color: #ff4081; margin-top: 6px;">
-          ยอดโอนสุทธิ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}
+        <div style="font-size: 13px; font-weight: 700; color: #ff4081; margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+          <span>ยอดโอนสุทธิ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}</span>
+          <button onclick="window.copyToClipboard('${currentCheckoutGrandTotal}', 'ยอดเงิน')" style="background: var(--primary-pink); color: white; border: none; padding: 2px 6px; font-size: 10px; border-radius: 4px; cursor: pointer;">คัดลอกยอด</button>
         </div>
       `;
     }
