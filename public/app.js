@@ -1914,12 +1914,11 @@ window.openAdminModal = async function() {
                       <th style="padding: 8px 8px; text-align: right; border-right: 1px solid rgba(255,255,255,0.2);">รวมสุทธิ</th>
                       <th style="padding: 8px 8px; text-align: right; border-right: 1px solid rgba(255,255,255,0.2);">กำไร</th>
                       <th style="padding: 8px 8px; text-align: center; border-right: 1px solid rgba(255,255,255,0.2);">วัน/เดือน/ปี และเวลา</th>
-                      <th style="padding: 8px 6px; text-align: center; width: 75px; border-right: 1px solid rgba(255,255,255,0.2);">รายละเอียด</th>
-                      <th style="padding: 8px 6px; text-align: center; width: 40px;">ลบ</th>
+                      <th style="padding: 8px 6px; text-align: center; width: 75px;">รายละเอียด</th>
                     </tr>
                   </thead>
                   <tbody id="adminSalesHistoryTableBody">
-                    <tr><td colspan="12" style="padding: 20px; text-align: center; color: #888;">กำลังโหลดประวัติ...</td></tr>
+                    <tr><td colspan="11" style="padding: 20px; text-align: center; color: #888;">กำลังโหลดประวัติ...</td></tr>
                   </tbody>
                   <tfoot id="adminSalesHistoryTableFooter">
                     <!-- แถวสรุปผลรวม -->
