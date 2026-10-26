@@ -968,7 +968,7 @@ async function loadCart() {
 }
 
 /* ============================================================
-   CHECKOUT, ADDRESS & PAYMENT SYSTEM (ADVANCED PROMPTPAY DYNAMIC)
+   CHECKOUT, ADDRESS & PAYMENT SYSTEM (LOCAL QR DRAWING FIX)
    ============================================================ */
 let selectedPaymentMethod = 'qr';
 let currentCheckoutGrandTotal = 0;
@@ -978,27 +978,27 @@ let qrRemainingSeconds = 300;
 // เบอร์พร้อมเพย์ของเฮีย (นาย พรหมพิริยะ มหินกอง)
 const PROMPTPAY_NUMBER = '0621485603'; 
 
-// ฟังก์ชันสร้างชุดข้อมูลพร้อมเพย์มาตรฐาน EMV Co (Dynamic QR ฝังยอดเงินอัตโนมัติ)
+// ฟังก์ชันสร้างชุดข้อมูลพร้อมเพย์มาตรฐาน EMV Co (Dynamic QR พร้อมฝังยอดเงิน)
 function generatePromptPayPayload(mobileNumber, amount) {
   let target = mobileNumber.trim();
   
-  // แปลงเบอร์มือถือ 10 หลัก เป็นรูปแบบสากล (0066 ตามด้วยเบอร์ตัด 0 ตัวออก)
+  // แปลงเบอร์มือถือ 10 หลัก เป็นรูปแบบสากล (66 ตามด้วยเบอร์ตัด 0 ตัวแรก)
   if (target.startsWith('0')) {
-    target = '0066' + target.substring(1);
+    target = '66' + target.substring(1);
   }
   
-  // โครงสร้าง Tag 29 สำหรับพร้อมเพย์เบอร์โทรศัพท์ (AID พร้อมเพย์ + เบอร์โทร)
+  // โครงสร้าง Tag 29 สำหรับพร้อมเพย์เบอร์โทรศัพท์
   let targetField = '0016A0000006770101010104' + target;
   let merchantAccount = '00' + ('0' + targetField.length).slice(-2) + targetField;
   let merchantTag = '29' + ('0' + merchantAccount.length).slice(-2) + merchantAccount;
 
   let data = 
-    '000201' + // Payload Format Indicator (Version 01)
-    '010212' + // Point of Initiation Method (12 = Dynamic QR มีการกำหนดจำนวนเงิน)
+    '000201' + // Payload Format Indicator
+    '010212' + // Initiation Method (12 = Dynamic QR)
     merchantTag + 
-    '5303764' + // Transaction Currency (764 = THB)
-    '5802TH' +   // Country Code (TH)
-    '5918PROMPTPAY MERCHANT'; // Merchant Name
+    '5303764' + // Currency (THB)
+    '5802TH' +   // Country Code
+    '5918BOXIE OFFICIAL'; // Merchant Name
 
   // กำหนดจำนวนเงินสุทธิ (Tag 54)
   if (amount && amount > 0) {
@@ -1187,7 +1187,7 @@ window.closeCheckoutModal = function() {
   document.getElementById('checkoutModal').style.display = 'none';
 };
 
-// สลับช่องทางชำระเงิน
+// สลับช่องทางชำระเงิน (ใช้วิธีวาด QR Code สดบนหน้าเว็บผ่าน Library โดยตรง ไม่ผ่าน API นอก)
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1210,7 +1210,6 @@ window.selectPaymentMethod = function(method) {
     }
 
     const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, currentCheckoutGrandTotal);
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(payload)}&ecc=H`;
 
     detailBox.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; margin-bottom: 6px; color: #ffeb3b; font-weight: 600;">
@@ -1219,7 +1218,7 @@ window.selectPaymentMethod = function(method) {
       <div id="qrDisplayContainer" style="display: flex; justify-content: center; align-items: center;">
         <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block; text-align: center;">
           <div style="font-size: 9px; font-weight: 700; color: #003366; margin-bottom: 3px; border-bottom: 1px solid #ddd; padding-bottom: 2px;">THAI QR PAYMENT</div>
-          <img src="${qrApiUrl}" alt="PromptPay QR" style="width: 125px; height: 125px; display: block; margin: 0 auto;">
+          <div id="qrcodeCanvasBox" style="display: flex; justify-content: center;"></div>
           <div style="font-size: 8px; color: #555; margin-top: 3px; font-weight: 600;">นาย พรหมพิริยะ มหินกอง</div>
         </div>
       </div>
@@ -1228,6 +1227,22 @@ window.selectPaymentMethod = function(method) {
       </div>
       <div style="font-size: 10px; color: #888;">BOXIE OFFICIAL STORE (พร้อมเพย์)</div>
     `;
+
+    // สั่งวาด QR Code ทันทีด้วย QRCode JS Library ฝั่งเบราว์เซอร์
+    setTimeout(() => {
+      const container = document.getElementById('qrcodeCanvasBox');
+      if (container) {
+        container.innerHTML = '';
+        new QRCode(container, {
+          text: payload,
+          width: 130,
+          height: 130,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+    }, 50);
 
     startQrTimer();
 
