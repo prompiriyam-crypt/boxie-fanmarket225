@@ -1203,7 +1203,7 @@ window.closeCheckoutModal = function() {
   document.getElementById('checkoutModal').style.display = 'none';
 };
 
-// สลับช่องทางชำระเงิน
+// สลับช่องทางชำระเงิน (ใช้ QR Code แบบวาดสดบนหน้าเว็บ ชัวร์ 100%)
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1226,23 +1226,35 @@ window.selectPaymentMethod = function(method) {
     }
 
     const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, currentCheckoutGrandTotal);
-    // ใช้บริการ API สร้าง QR Code มาตรฐานที่เสถียรและโหลดไว
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(payload)}`;
 
     detailBox.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; margin-bottom: 6px; color: #ffeb3b; font-weight: 600;">
           กรุณาชำระเงินภายใน: <span id="qrCountdownText" style="background: rgba(255,235,59,0.15); padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: monospace;">05:00</span>
       </div>
-      <div id="qrDisplayContainer">
-        <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block;">
-          <img src="${qrUrl}" alt="PromptPay QR" style="width: 130px; height: 130px; display: block;">
-        </div>
+      <div id="qrDisplayContainer" style="display: flex; justify-content: center; align-items: center;">
+        <div id="qrcodeCanvas" style="background: white; padding: 6px; border-radius: 8px; display: inline-block;"></div>
       </div>
       <div style="margin-top: 6px; font-size: 13px; font-weight: 700; color: #ff4081;">
         ยอดชำระ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}
       </div>
       <div style="font-size: 10px; color: #888;">BOXIE OFFICIAL STORE (พร้อมเพย์)</div>
     `;
+
+    // สั่งวาดรูป QR Code ลงใน div ทันทีโดยใช้ไลบรารีมาตรฐาน
+    setTimeout(() => {
+      const container = document.getElementById('qrcodeCanvas');
+      if (container) {
+        container.innerHTML = ''; //เคลียร์ของเก่า
+        new QRCode(container, {
+          text: payload,
+          width: 130,
+          height: 130,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+    }, 50);
 
     startQrTimer();
 
