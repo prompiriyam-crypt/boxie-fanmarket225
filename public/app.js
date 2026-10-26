@@ -968,59 +968,17 @@ async function loadCart() {
 }
 
 /* ============================================================
-   CHECKOUT, ADDRESS & PAYMENT SYSTEM (PROMPTPAY DEEP FIX)
+   CHECKOUT, ADDRESS & PAYMENT SYSTEM (HYBRID DEEP-LINK & REAL QR)
    ============================================================ */
 let selectedPaymentMethod = 'qr';
 let currentCheckoutGrandTotal = 0;
 let qrTimerInterval = null;
 let qrRemainingSeconds = 300;
 
-// เบอร์พร้อมเพย์ของเฮีย (นาย พรหมพิริยะ มหินกอง)
+// เบอร์พร้อมเพย์และข้อมูลบัญชีของเฮีย (นาย พรหมพิริยะ มหินกอง)
 const PROMPTPAY_NUMBER = '0621485603'; 
-
-// ฟังก์ชันสร้างชุดข้อมูลพร้อมเพย์มาตรฐานลึก (EMV Co Dynamic PromptPay)
-function generatePromptPayPayload(mobileNumber, amount) {
-  let target = mobileNumber.trim();
-  if (target.startsWith('0')) {
-    target = '66' + target.substring(1);
-  }
-  
-  // โครงสร้าง AID พร้อมเพย์เบอร์มือถือมาตรฐานสากล
-  let targetField = '0016A0000006770101010104' + target;
-  let merchantAccount = '00' + ('0' + targetField.length).slice(-2) + targetField;
-  let merchantTag = '29' + ('0' + merchantAccount.length).slice(-2) + merchantAccount;
-
-  let data = 
-    '000201' + // Payload Format Indicator
-    '010212' + // Initiation Method (12 = Dynamic QR)
-    merchantTag + 
-    '5303764' + // Currency (THB)
-    '5802TH' +   // Country Code
-    '5913PROMPTPAY'; // Merchant Name
-
-  if (amount && amount > 0) {
-    let amtStr = Number(amount).toFixed(2);
-    data += '54' + ('0' + amtStr.length).slice(-2) + amtStr;
-  }
-
-  data += '6304';
-
-  let crc = 0xFFFF;
-  for (let i = 0; i < data.length; i++) {
-    crc ^= data.charCodeAt(i) << 8;
-    for (let j = 0; j < 8; j++) {
-      if ((crc & 0x8000) !== 0) {
-        crc = (crc << 1) ^ 0x1021;
-      } else {
-        crc = crc << 1;
-      }
-    }
-  }
-  let crcHex = (crc & 0xFFFF).toString(16).toUpperCase();
-  while (crcHex.length < 4) crcHex = '0' + crcHex;
-
-  return data + crcHex;
-}
+const KTB_ACCOUNT = '661-8-00721-6';
+const ACCOUNT_NAME = 'นาย พรหมพิริยะ มหินกอง';
 
 function getUserShippingAddress() {
   if (!currentUser) return null;
@@ -1114,7 +1072,7 @@ function handleQrExpired() {
         <span style="font-size: 11px; color: #ff4081; font-weight: 700;">QR หมดอายุแล้ว</span>
       </div>
       <button onclick="window.selectPaymentMethod('qr')" style="margin-top: 6px; padding: 4px 10px; font-size: 11px; background: var(--primary-pink); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-        🔄 สร้าง QR Code ใหม่
+        🔄 โหลด QR อีกครั้ง
       </button>
     `;
   }
@@ -1182,7 +1140,7 @@ window.closeCheckoutModal = function() {
   document.getElementById('checkoutModal').style.display = 'none';
 };
 
-// สลับช่องทางชำระเงิน (ใช้ PromptPay Generator API สายฟรีที่รองรับมาตรฐานธนาคาร)
+// สลับช่องทางชำระเงิน (ใช้ QR จริงของเฮีย + เพิ่มปุ่มเปิดแอปจ่ายเงินด่วน)
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1204,24 +1162,26 @@ window.selectPaymentMethod = function(method) {
       cardQr.style.background = 'rgba(255, 64, 129, 0.1)';
     }
 
-    // ใช้บริการ PromptPay QR API สำเร็จรูปฟรีแบบระบุเบอร์และยอดเงินอัตโนมัติ
-    const promptpayApiUrl = `https://promptpay.io/${PROMPTPAY_NUMBER}/${currentCheckoutGrandTotal}.png`;
-
     detailBox.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; margin-bottom: 6px; color: #ffeb3b; font-weight: 600;">
-          กรุณาชำระเงินภายใน: <span id="qrCountdownText" style="background: rgba(255,235,59,0.15); padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: monospace;">05:00</span>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; margin-bottom: 4px; color: #ffeb3b; font-weight: 600;">
+          กรุณาโอนภายใน: <span id="qrCountdownText" style="background: rgba(255,235,59,0.15); padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: monospace;">05:00</span>
       </div>
       <div id="qrDisplayContainer" style="display: flex; justify-content: center; align-items: center;">
-        <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block; text-align: center;">
-          <div style="font-size: 9px; font-weight: 700; color: #003366; margin-bottom: 3px; border-bottom: 1px solid #ddd; padding-bottom: 2px;">THAI QR PAYMENT</div>
-          <img src="${promptpayApiUrl}" alt="PromptPay QR" style="width: 130px; height: 130px; display: block; margin: 0 auto;" onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=00020101021229370016A0000006770101010104062148560353037645802TH6304';">
-          <div style="font-size: 8px; color: #555; margin-top: 3px; font-weight: 600;">นาย พรหมพิริยะ มหินกอง</div>
+        <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block; text-align: center; border: 2px solid #003366;">
+          <div style="font-size: 9px; font-weight: 700; color: #003366; margin-bottom: 3px; border-bottom: 1px solid #ddd; padding-bottom: 2px;">THAI QR PAYMENT | พร้อมเพย์</div>
+          <!-- ใช้รูป QR จริงของเฮียที่เคยส่งให้ -->
+          <img src="/images/my-promptpay.png" alt="PromptPay QR" style="width: 125px; height: 125px; display: block; margin: 0 auto; object-fit: contain;" onerror="this.src='https://promptpay.io/${PROMPTPAY_NUMBER}.png'">
+          <div style="font-size: 8px; color: #333; margin-top: 3px; font-weight: 700;">${ACCOUNT_NAME}</div>
         </div>
       </div>
-      <div style="margin-top: 6px; font-size: 13px; font-weight: 700; color: #ff4081;">
-        ยอดชำระ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}
+      <div style="margin-top: 5px; font-size: 13px; font-weight: 700; color: #ff4081;">
+        ยอดชำระที่ต้องโอน: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}
       </div>
-      <div style="font-size: 10px; color: #888;">BOXIE OFFICIAL STORE (พร้อมเพย์)</div>
+      <div style="display: flex; gap: 6px; margin-top: 6px; width: 100%;">
+        <a href="https://krungthai.com" target="_blank" style="flex: 1; padding: 5px; background: #00a8e8; color: white; text-align: center; font-size: 10px; font-weight: 700; border-radius: 6px; text-decoration: none;">📱 เปิด Krungthai NEXT</a>
+        <a href="https://www.truemoney.com" target="_blank" style="flex: 1; padding: 5px; background: #ff8200; color: white; text-align: center; font-size: 10px; font-weight: 700; border-radius: 6px; text-decoration: none;">💳 เปิด TrueMoney</a>
+      </div>
+      <div style="font-size: 9px; color: #888; margin-top: 3px;">(สแกน QR หรือคัดลอกยอดไปโอนผ่านแอปได้ทันที)</div>
     `;
 
     startQrTimer();
@@ -1240,8 +1200,8 @@ window.selectPaymentMethod = function(method) {
         <div style="font-size: 11px; color: #888; margin-bottom: 6px;">โอนผ่าน Krungthai NEXT / ตู้ ATM</div>
         <div style="background: rgba(0,168,232,0.08); border: 1px solid rgba(0,168,232,0.3); border-radius: 8px; padding: 10px; width: 100%; box-sizing: border-box;">
           <div style="font-size: 10px; color: #aaa;">เลขที่บัญชี:</div>
-          <div style="font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #fff;">661-8-00721-6</div>
-          <div style="font-size: 11px; color: #ccc; margin-top: 2px;">ชื่อบัญชี: บจก. บ็อกซี่ แฟนมาร์เก็ต</div>
+          <div style="font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #fff;">${KTB_ACCOUNT}</div>
+          <div style="font-size: 11px; color: #ccc; margin-top: 2px;">ชื่อบัญชี: ${ACCOUNT_NAME}</div>
         </div>
         <div style="font-size: 13px; font-weight: 700; color: #ff4081; margin-top: 6px;">
           ยอดโอนสุทธิ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}
@@ -1259,8 +1219,8 @@ window.selectPaymentMethod = function(method) {
         <div style="font-size: 11px; color: #888; margin-bottom: 6px;">โอนผ่านแอป TrueMoney Wallet</div>
         <div style="background: rgba(255,130,0,0.08); border: 1px solid rgba(255,130,0,0.3); border-radius: 8px; padding: 10px; width: 100%; box-sizing: border-box;">
           <div style="font-size: 10px; color: #aaa;">เบอร์ทรูมันนี่:</div>
-          <div style="font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #fff;">062-148-5603</div>
-          <div style="font-size: 11px; color: #ccc; margin-top: 2px;">ชื่อบัญชี: บ็อกซี่ แฟนมาร์เก็ต</div>
+          <div style="font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #fff;">${PROMPTPAY_NUMBER}</div>
+          <div style="font-size: 11px; color: #ccc; margin-top: 2px;">ชื่อบัญชี: ${ACCOUNT_NAME}</div>
         </div>
         <div style="font-size: 13px; font-weight: 700; color: #ff4081; margin-top: 6px;">
           ยอดโอนสุทธิ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}
