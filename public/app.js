@@ -1209,14 +1209,14 @@ window.selectPaymentMethod = function(method) {
       </div>
       <div id="qrDisplayContainer" style="display: flex; justify-content: center; align-items: center;">
         <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block; text-align: center; border: 2px solid #003366; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-          <!-- รูป QR .jpg ของเฮียแบบเต็มๆ ไม่มีปุ่มเกะกะ -->
+          <!-- รูป QR .jpg ของเฮียแบบเต็มๆ สะอาดตา ไม่มีปุ่มอะไรทั้งสิ้น -->
           <img src="/images/my-promptpay.jpg" alt="PromptPay QR" style="width: 150px; height: auto; display: block; margin: 0 auto; border-radius: 4px;" onerror="this.src='https://promptpay.io/${PROMPTPAY_NUMBER}.png'">
         </div>
       </div>
       <div style="margin-top: 8px; font-size: 13px; font-weight: 800; color: #ff4081; background: rgba(255,64,129,0.08); padding: 6px; border-radius: 6px; text-align: center;">
         ยอดชำระสุทธิ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}
       </div>
-      <div style="font-size: 9px; color: #aaa; margin-top: 4px; text-align: center;">สแกน QR Code นี้ผ่านแอปธนาคารเพื่อชำระเงิน[cite: 7]</div>
+      <div style="font-size: 9px; color: #aaa; margin-top: 4px; text-align: center;">สแกน QR Code นี้ผ่านแอปธนาคารเพื่อชำระเงิน</div>
     `;
 
     startQrTimer();
