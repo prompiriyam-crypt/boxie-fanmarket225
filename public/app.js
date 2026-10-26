@@ -968,7 +968,7 @@ async function loadCart() {
 }
 
 /* ============================================================
-   CHECKOUT, ADDRESS & PAYMENT SYSTEM (STABLE API FIX)
+   CHECKOUT, ADDRESS & PAYMENT SYSTEM (PROMPTPAY DEEP FIX)
    ============================================================ */
 let selectedPaymentMethod = 'qr';
 let currentCheckoutGrandTotal = 0;
@@ -978,15 +978,14 @@ let qrRemainingSeconds = 300;
 // เบอร์พร้อมเพย์ของเฮีย (นาย พรหมพิริยะ มหินกอง)
 const PROMPTPAY_NUMBER = '0621485603'; 
 
-// ฟังก์ชันสร้างชุดข้อมูลพร้อมเพย์มาตรฐาน EMV Co (Dynamic QR พร้อมฝังยอดเงิน)
+// ฟังก์ชันสร้างชุดข้อมูลพร้อมเพย์มาตรฐานลึก (EMV Co Dynamic PromptPay)
 function generatePromptPayPayload(mobileNumber, amount) {
   let target = mobileNumber.trim();
-  
   if (target.startsWith('0')) {
     target = '66' + target.substring(1);
   }
   
-  // AID พร้อมเพย์เบอร์โทรศัพท์มาตรฐาน
+  // โครงสร้าง AID พร้อมเพย์เบอร์มือถือมาตรฐานสากล
   let targetField = '0016A0000006770101010104' + target;
   let merchantAccount = '00' + ('0' + targetField.length).slice(-2) + targetField;
   let merchantTag = '29' + ('0' + merchantAccount.length).slice(-2) + merchantAccount;
@@ -997,7 +996,7 @@ function generatePromptPayPayload(mobileNumber, amount) {
     merchantTag + 
     '5303764' + // Currency (THB)
     '5802TH' +   // Country Code
-    '5918BOXIE OFFICIAL'; // Merchant Name
+    '5913PROMPTPAY'; // Merchant Name
 
   if (amount && amount > 0) {
     let amtStr = Number(amount).toFixed(2);
@@ -1183,7 +1182,7 @@ window.closeCheckoutModal = function() {
   document.getElementById('checkoutModal').style.display = 'none';
 };
 
-// สลับช่องทางชำระเงิน (ใช้ QR API มาตรฐานที่เรนเดอร์ภาพผ่าน URL โดยตรง ป้องกันปัญหา Script โหลดไม่ทัน)
+// สลับช่องทางชำระเงิน
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1207,8 +1206,8 @@ window.selectPaymentMethod = function(method) {
 
     const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, currentCheckoutGrandTotal);
     
-    // ใช้บริการ QR Generator เสถียรสูง (QuickChart API) ที่รองรับการแปลงข้อความยาวๆ เป็น QR Code ชัดเจน
-    const qrApiUrl = `https://quickchart.io/qr?text=${encodeURIComponent(payload)}&size=150&margin=1`;
+    // ใช้ API แปลง QR ที่รองรับการเข้ารหัสอักขระพิเศษแบบสมบูรณ์
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(payload)}`;
 
     detailBox.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; margin-bottom: 6px; color: #ffeb3b; font-weight: 600;">
@@ -1261,9 +1260,9 @@ window.selectPaymentMethod = function(method) {
         <div style="font-size: 13px; font-weight: 700; color: #ff8200;">ทรูมันนี่ วอลเล็ท (TrueMoney)</div>
         <div style="font-size: 11px; color: #888; margin-bottom: 6px;">โอนผ่านแอป TrueMoney Wallet</div>
         <div style="background: rgba(255,130,0,0.08); border: 1px solid rgba(255,130,0,0.3); border-radius: 8px; padding: 10px; width: 100%; box-sizing: border-box;">
-          <div style="font-size: 10px; color: #aaa;">เลขที่บัญชี:</div>
+          <div style="font-size: 10px; color: #aaa;">เบอร์ทรูมันนี่:</div>
           <div style="font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #fff;">062-148-5603</div>
-          <div style="font-size: 11px; color: #ccc; margin-top: 2px;">ชื่อบัญชี: บจก. บ็อกซี่ แฟนมาร์เก็ต</div>
+          <div style="font-size: 11px; color: #ccc; margin-top: 2px;">ชื่อบัญชี: บ็อกซี่ แฟนมาร์เก็ต</div>
         </div>
         <div style="font-size: 13px; font-weight: 700; color: #ff4081; margin-top: 6px;">
           ยอดโอนสุทธิ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}
