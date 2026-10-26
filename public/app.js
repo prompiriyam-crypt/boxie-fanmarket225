@@ -1217,8 +1217,8 @@ window.selectPaymentMethod = function(method) {
     }
 
     const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, currentCheckoutGrandTotal);
-    // เปลี่ยนมาใช้ API Google Chart ที่รองรับการสแกนพร้อมเพย์ได้เสถียรที่สุด
-    const qrUrl = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(payload)}&choe=UTF-8`;
+    // ใช้บริการ API สร้าง QR Code มาตรฐานที่เสถียรและโหลดไว
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(payload)}`;
 
     detailBox.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; margin-bottom: 6px; color: #ffeb3b; font-weight: 600;">
@@ -1280,7 +1280,6 @@ window.selectPaymentMethod = function(method) {
     }
   }
 };
-
 // ==========================================
 // ฟังก์ชันยืนยันคำสั่งซื้อและชำระเงิน (รวมร่างสมบูรณ์)
 // ==========================================
