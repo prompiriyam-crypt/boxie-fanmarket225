@@ -975,8 +975,55 @@ let currentCheckoutGrandTotal = 0;
 let qrTimerInterval = null;
 let qrRemainingSeconds = 300;
 
-// ⚠️ ใส่เบอร์พร้อมเพย์รับเงินของคุณตรงนี้ (10 หลัก ไม่มีขีด)
+// ⚠️ ใส่เลขอ้างอิงพร้อมเพย์ของคุณตรงนี้ (เลขบัตรประชาชน 13 หลัก)
 const PROMPTPAY_NUMBER = '1479900748136'; 
+
+// ฟังก์ชันช่วยคำนวณ CRC16 สำหรับสร้างชุดข้อมูลพร้อมเพย์ (EMV Co) ฝั่ง JS
+function generatePromptPayPayload(id, amount) {
+  let target = id.trim();
+  if (target.length === 10 && target.startsWith('0')) {
+    target = '0066' + target.substring(1);
+  }
+  
+  let targetField = '';
+  if (target.length === 13) {
+    targetField = '0016A0000006770101030113' + target;
+  } else {
+    targetField = '0016A0000006770101010113' + target;
+  }
+
+  const merchantAccount = '00' + ('0' + targetField.length).slice(-2) + targetField;
+  
+  let data = 
+    '000201' + 
+    '010212' + 
+    '29' + ('0' + merchantAccount.length).slice(-2) + merchantAccount + 
+    '5303764' + 
+    '5802TH';
+
+  if (amount && amount > 0) {
+    const amtStr = Number(amount).toFixed(2);
+    data += '54' + ('0' + amtStr.length).slice(-2) + amtStr;
+  }
+
+  data += '6304';
+
+  let crc = 0xFFFF;
+  for (let i = 0; i < data.length; i++) {
+    crc ^= data.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      if ((crc & 0x8000) !== 0) {
+        crc = (crc << 1) ^ 0x1021;
+      } else {
+        crc = crc << 1;
+      }
+    }
+  }
+  let crcHex = (crc & 0xFFFF).toString(16).toUpperCase();
+  while (crcHex.length < 4) crcHex = '0' + crcHex;
+
+  return data + crcHex;
+}
 
 // ระบบจัดการที่อยู่ (แยกตามบัญชีที่ล็อกอิน)
 function getUserShippingAddress() {
@@ -995,7 +1042,6 @@ function renderAddressBox() {
   const displayView = document.getElementById('addressDisplayView');
   const editView = document.getElementById('addressEditView');
 
-  // ถ้ายังไม่เคยกรอกที่อยู่ ให้แสดงฟอร์มกรอกทันที
   if (!addr || !addr.phone || !addr.address) {
     document.getElementById('inputRecipientName').value = (currentUser && currentUser.username) || '';
     document.getElementById('inputRecipientPhone').value = '';
@@ -1122,29 +1168,17 @@ window.openCheckoutModal = async function() {
 
     const shipping = 50;
     const subtotal = Number(data.total) || 0;
-    
-    // คำนวณ VAT 7% จากยอดรวมสินค้าจริง และปัดเศษให้เป็นจำนวนเต็ม
     const vat = Math.round(subtotal * 0.07); 
-    
-    // ยอดรวมทั้งหมด = ราคาสินค้า + VAT 7% + ค่าจัดส่ง
     currentCheckoutGrandTotal = subtotal + vat + shipping;
 
     const subEl = document.getElementById('checkoutSubtotal');
-    if (subEl) {
-      subEl.textContent = `฿ ${subtotal.toLocaleString()}`;
-    }
+    if (subEl) subEl.textContent = `฿ ${subtotal.toLocaleString()}`;
 
-    // อัปเดตตัวเลข VAT บนหน้าเว็บ
     const vatEl = document.getElementById('checkoutVat');
-    if (vatEl) {
-      vatEl.textContent = `฿ ${vat.toLocaleString()}`;
-    }
+    if (vatEl) vatEl.textContent = `฿ ${vat.toLocaleString()}`;
 
-    // อัปเดตยอดรวมสุทธิทั้งหมด
     const grandEl = document.getElementById('checkoutGrandtotal');
-    if (grandEl) {
-      grandEl.textContent = `฿ ${currentCheckoutGrandTotal.toLocaleString()}`;
-    }
+    if (grandEl) grandEl.textContent = `฿ ${currentCheckoutGrandTotal.toLocaleString()}`;
 
     document.getElementById('checkoutGrandTotal').textContent = `฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}`;
 
@@ -1154,12 +1188,13 @@ window.openCheckoutModal = async function() {
     console.error('Checkout error:', err);
   }
 };
+
 window.closeCheckoutModal = function() {
   clearInterval(qrTimerInterval);
   document.getElementById('checkoutModal').style.display = 'none';
 };
 
-// สลับช่องทางชำระเงิน
+// สลับช่องทางชำระเงิน (มีทั้ง QR 13 หลัก, กรุงไทย และ วอลเล็ท ครบถ้วน)
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1181,11 +1216,12 @@ window.selectPaymentMethod = function(method) {
       cardQr.style.background = 'rgba(255, 64, 129, 0.1)';
     }
 
-    const qrUrl = `https://promptpay.io/${PROMPTPAY_NUMBER}/${currentCheckoutGrandTotal}.png`;
+    const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, currentCheckoutGrandTotal);
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(payload)}`;
 
     detailBox.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; margin-bottom: 6px; color: #ffeb3b; font-weight: 600;">
-         กรุณาชำระเงินภายใน: <span id="qrCountdownText" style="background: rgba(255,235,59,0.15); padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: monospace;">05:00</span>
+          กรุณาชำระเงินภายใน: <span id="qrCountdownText" style="background: rgba(255,235,59,0.15); padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: monospace;">05:00</span>
       </div>
       <div id="qrDisplayContainer">
         <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block;">
