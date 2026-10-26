@@ -968,7 +968,7 @@ async function loadCart() {
 }
 
 /* ============================================================
-   BOXIE OFFICIAL STORE - MAIN APPLICATION SCRIPT (FULL VERSION)
+   BOXIE OFFICIAL STORE - FINAL COMPLETE APPLICATION SCRIPT
    ============================================================ */
 
 let selectedPaymentMethod = 'qr';
@@ -1178,7 +1178,7 @@ window.closeCheckoutModal = function() {
 };
 
 /* ------------------------------------------------------------
-   4. UTILITY & APP LAUNCHER ACTIONS
+   4. UTILITY & APP ACTIONS
    ------------------------------------------------------------ */
 window.copyToClipboard = function(text, label) {
   navigator.clipboard.writeText(text).then(() => {
@@ -1207,7 +1207,7 @@ window.openBankingApp = function(appName) {
 };
 
 /* ------------------------------------------------------------
-   5. PAYMENT METHOD SWITCHER (QR .JPG & BANK ACCOUNTS)
+   5. PAYMENT METHOD SWITCHER (EXACT MATCH FOR my-promptpay.jpg)
    ------------------------------------------------------------ */
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
@@ -1238,7 +1238,7 @@ window.selectPaymentMethod = function(method) {
       </div>
       <div id="qrDisplayContainer" style="display: flex; justify-content: center; align-items: center;">
         <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block; text-align: center; border: 2px solid #003366; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-          <!-- ดึงรูป QR สกุล .jpg ของเฮียมาแสดงผล -->
+          <!-- ดึงไฟล์ /images/my-promptpay.jpg ตรงๆ ตามที่อยู่ใน GitHub พร้อมระบบสำรอง -->
           <img src="/images/my-promptpay.jpg" alt="PromptPay QR" style="width: 140px; height: auto; display: block; margin: 0 auto; border-radius: 4px;" onerror="this.src='https://promptpay.io/${PROMPTPAY_NUMBER}.png'">
         </div>
       </div>
