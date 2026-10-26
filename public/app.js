@@ -968,27 +968,27 @@ async function loadCart() {
 }
 
 /* ============================================================
-   CHECKOUT, ADDRESS & PAYMENT SYSTEM (ULTIMATE PROMPTPAY FIX)
+   CHECKOUT, ADDRESS & PAYMENT SYSTEM (ADVANCED PROMPTPAY DYNAMIC)
    ============================================================ */
 let selectedPaymentMethod = 'qr';
 let currentCheckoutGrandTotal = 0;
 let qrTimerInterval = null;
 let qrRemainingSeconds = 300;
 
-// เบอร์พร้อมเพย์ของเฮีย
+// เบอร์พร้อมเพย์ของเฮีย (นาย พรหมพิริยะ มหินกอง)
 const PROMPTPAY_NUMBER = '0621485603'; 
 
-// ฟังก์ชันสร้างชุดข้อมูลพร้อมเพย์มาตรฐาน EMV Co (Dynamic QR พร้อมฝังยอดเงิน)
+// ฟังก์ชันสร้างชุดข้อมูลพร้อมเพย์มาตรฐาน EMV Co (Dynamic QR ฝังยอดเงินอัตโนมัติ)
 function generatePromptPayPayload(mobileNumber, amount) {
   let target = mobileNumber.trim();
   
-  // แปลงเบอร์มือถือ 10 หลัก เป็นรูปแบบสากล (66 ตามด้วยเบอร์ตัด 0 ตัวแรก)
+  // แปลงเบอร์มือถือ 10 หลัก เป็นรูปแบบสากล (0066 ตามด้วยเบอร์ตัด 0 ตัวออก)
   if (target.startsWith('0')) {
-    target = '66' + target.substring(1);
+    target = '0066' + target.substring(1);
   }
   
-  // AID สำหรับพร้อมเพย์เบอร์โทรศัพท์มือถือ (A000000677010101) ตามมาตรฐาน กสทช. / ธปท.
-  let targetField = '0016A0000006770101010211' + target;
+  // โครงสร้าง Tag 29 สำหรับพร้อมเพย์เบอร์โทรศัพท์ (AID พร้อมเพย์ + เบอร์โทร)
+  let targetField = '0016A0000006770101010104' + target;
   let merchantAccount = '00' + ('0' + targetField.length).slice(-2) + targetField;
   let merchantTag = '29' + ('0' + merchantAccount.length).slice(-2) + merchantAccount;
 
@@ -998,7 +998,7 @@ function generatePromptPayPayload(mobileNumber, amount) {
     merchantTag + 
     '5303764' + // Transaction Currency (764 = THB)
     '5802TH' +   // Country Code (TH)
-    '5913BOXIE MARKET'; // Merchant Name (ชื่อร้านค้า)
+    '5918PROMPTPAY MERCHANT'; // Merchant Name
 
   // กำหนดจำนวนเงินสุทธิ (Tag 54)
   if (amount && amount > 0) {
@@ -1171,7 +1171,7 @@ window.openCheckoutModal = async function() {
     if (vatEl) vatEl.textContent = `฿ ${vat.toLocaleString()}`;
 
     const grandEl = document.getElementById('checkoutGrandtotal');
-    if (grandEl) grandEl.textContent = `฿ ${currentCheckoutGrandTotal.toLocaleString()}`;
+    if (grandEl) grandEl.textContent = `฿ ${grandEl.toLocaleString()}`;
 
     document.getElementById('checkoutGrandTotal').textContent = `฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}`;
 
@@ -1210,15 +1210,17 @@ window.selectPaymentMethod = function(method) {
     }
 
     const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, currentCheckoutGrandTotal);
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(payload)}&ecc=M`;
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(payload)}&ecc=H`;
 
     detailBox.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; margin-bottom: 6px; color: #ffeb3b; font-weight: 600;">
           กรุณาชำระเงินภายใน: <span id="qrCountdownText" style="background: rgba(255,235,59,0.15); padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: monospace;">05:00</span>
       </div>
       <div id="qrDisplayContainer" style="display: flex; justify-content: center; align-items: center;">
-        <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block;">
-          <img src="${qrApiUrl}" alt="PromptPay QR" style="width: 130px; height: 130px; display: block;">
+        <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block; text-align: center;">
+          <div style="font-size: 9px; font-weight: 700; color: #003366; margin-bottom: 3px; border-bottom: 1px solid #ddd; padding-bottom: 2px;">THAI QR PAYMENT</div>
+          <img src="${qrApiUrl}" alt="PromptPay QR" style="width: 125px; height: 125px; display: block; margin: 0 auto;">
+          <div style="font-size: 8px; color: #555; margin-top: 3px; font-weight: 600;">นาย พรหมพิริยะ มหินกอง</div>
         </div>
       </div>
       <div style="margin-top: 6px; font-size: 13px; font-weight: 700; color: #ff4081;">
