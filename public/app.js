@@ -979,35 +979,44 @@ let qrRemainingSeconds = 300;
 const PROMPTPAY_NUMBER = '0621485603'; 
 
 // ฟังก์ชันช่วยคำนวณ CRC16 สำหรับสร้างชุดข้อมูลพร้อมเพย์ (EMV Co) ฝั่ง JS
+// ฟังก์ชันสร้างชุดข้อมูลพร้อมเพย์ (PromptPay Payload) มาตรฐาน EMV Co รองรับทั้งเบอร์และเลข 13 หลัก
 function generatePromptPayPayload(id, amount) {
   let target = id.trim();
-  if (target.length === 10 && target.startsWith('0')) {
-    target = '0066' + target.substring(1);
-  }
-  
   let targetField = '';
+
   if (target.length === 13) {
+    // เลขประจำตัวประชาชน 13 หลัก
     targetField = '0016A0000006770101030113' + target;
   } else {
+    // เบอร์โทรศัพท์มือถือ (แปลงเป็นรูปแบบสากล 66...)
+    if (target.startsWith('0')) {
+      target = '66' + target.substring(1);
+    }
     targetField = '0016A0000006770101010113' + target;
   }
 
+  // Merchant Account Information (Tag 29)
   const merchantAccount = '00' + ('0' + targetField.length).slice(-2) + targetField;
-  
-  let data = 
-    '000201' + 
-    '010212' + 
-    '29' + ('0' + merchantAccount.length).slice(-2) + merchantAccount + 
-    '5303764' + 
-    '5802TH';
+  const merchantTag = '29' + ('0' + merchantAccount.length).slice(-2) + merchantAccount;
 
+  // รวมชุดข้อมูลพื้นฐาน
+  let data = 
+    '000201' + // Payload Format Indicator (Version 01)
+    '010212' + // Point of Initiation Method (12 = Dynamic QR มีการกำหนดจำนวนเงิน)
+    merchantTag + 
+    '5303764' + // Transaction Currency (764 = THB)
+    '5802TH';   // Country Code (TH)
+
+  // กำหนดจำนวนเงิน (Tag 54)
   if (amount && amount > 0) {
     const amtStr = Number(amount).toFixed(2);
     data += '54' + ('0' + amtStr.length).slice(-2) + amtStr;
   }
 
+  // checksum CRC16 placeholder
   data += '6304';
 
+  // คำนวณ CRC16 (CCITT-FALSE)
   let crc = 0xFFFF;
   for (let i = 0; i < data.length; i++) {
     crc ^= data.charCodeAt(i) << 8;
