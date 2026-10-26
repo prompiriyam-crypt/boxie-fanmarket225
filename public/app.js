@@ -2131,11 +2131,8 @@ window.openAdminModal = async function() {
             <td style="padding: 8px 8px; text-align: right; color: #ff334b; font-weight: bold; border-right: 1px solid #222;">฿${netTotal.toLocaleString()}</td>
             <td style="padding: 8px 8px; text-align: right; color: #10b981; border-right: 1px solid #222;">฿${profit.toFixed(2)}</td>
             <td style="padding: 8px 8px; text-align: center; color: #aaa; font-size: 10px; border-right: 1px solid #222;">${formattedDateTime}</td>
-            <td style="padding: 8px 6px; text-align: center; border-right: 1px solid #222;">
-              <button onclick="window.openOrderEditModal(${o.id}, '${o.shipping_status || 'preparing'}', '${o.tracking_number || ''}')" title="จัดการออเดอร์" style="background:#2563eb; color:#fff; border:none; padding:4px 6px; border-radius:4px; cursor:pointer; font-size:10px;">📋 ${statusText}</button>
-            </td>
             <td style="padding: 8px 6px; text-align: center;">
-              <button onclick="window.deleteAdminOrder(${o.id})" title="ลบ" style="background:#dc2626; color:#fff; border:none; padding:4px 6px; border-radius:4px; cursor:pointer; font-size:10px;">🗑️</button>
+              <button onclick="window.openOrderEditModal(${o.id}, '${o.shipping_status || 'preparing'}', '${o.tracking_number || ''}')" title="จัดการออเดอร์" style="background:#2563eb; color:#fff; border:none; padding:4px 6px; border-radius:4px; cursor:pointer; font-size:10px;">📋 ${statusText}</button>
             </td>
           </tr>
         `;
@@ -2149,7 +2146,7 @@ window.openAdminModal = async function() {
             <td colspan="3" style="padding: 8px;"></td>
             <td style="padding: 8px; text-align: right; color: #ff334b;">฿${totalPriceSum.toLocaleString()}</td>
             <td style="padding: 8px; text-align: right; color: #10b981;">฿${totalProfitSum.toFixed(2)}</td>
-            <td colspan="3" style="padding: 8px; text-align: center; color: #aaa; font-size: 11px;">พบ ${orders.length} รายการ</td>
+            <td colspan="2" style="padding: 8px; text-align: center; color: #aaa; font-size: 11px;">พบ ${orders.length} รายการ</td>
           </tr>
         `;
       }
