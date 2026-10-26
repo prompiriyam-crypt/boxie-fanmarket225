@@ -1182,7 +1182,7 @@ window.closeCheckoutModal = function() {
   document.getElementById('checkoutModal').style.display = 'none';
 };
 
-// สลับช่องทางชำระเงิน
+// สลับช่องทางชำระเงิน (ใช้ PromptPay Generator API สายฟรีที่รองรับมาตรฐานธนาคาร)
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1204,10 +1204,8 @@ window.selectPaymentMethod = function(method) {
       cardQr.style.background = 'rgba(255, 64, 129, 0.1)';
     }
 
-    const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, currentCheckoutGrandTotal);
-    
-    // ใช้ API แปลง QR ที่รองรับการเข้ารหัสอักขระพิเศษแบบสมบูรณ์
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(payload)}`;
+    // ใช้บริการ PromptPay QR API สำเร็จรูปฟรีแบบระบุเบอร์และยอดเงินอัตโนมัติ
+    const promptpayApiUrl = `https://promptpay.io/${PROMPTPAY_NUMBER}/${currentCheckoutGrandTotal}.png`;
 
     detailBox.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; margin-bottom: 6px; color: #ffeb3b; font-weight: 600;">
@@ -1216,7 +1214,7 @@ window.selectPaymentMethod = function(method) {
       <div id="qrDisplayContainer" style="display: flex; justify-content: center; align-items: center;">
         <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block; text-align: center;">
           <div style="font-size: 9px; font-weight: 700; color: #003366; margin-bottom: 3px; border-bottom: 1px solid #ddd; padding-bottom: 2px;">THAI QR PAYMENT</div>
-          <img src="${qrApiUrl}" alt="PromptPay QR" style="width: 130px; height: 130px; display: block; margin: 0 auto;">
+          <img src="${promptpayApiUrl}" alt="PromptPay QR" style="width: 130px; height: 130px; display: block; margin: 0 auto;" onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=00020101021229370016A0000006770101010104062148560353037645802TH6304';">
           <div style="font-size: 8px; color: #555; margin-top: 3px; font-weight: 600;">นาย พรหมพิริยะ มหินกอง</div>
         </div>
       </div>
