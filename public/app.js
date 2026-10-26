@@ -968,42 +968,43 @@ async function loadCart() {
 }
 
 /* ============================================================
-   CHECKOUT, ADDRESS & PAYMENT SYSTEM
+   CHECKOUT, ADDRESS & PAYMENT SYSTEM (PROMPT-PAY FIX)
    ============================================================ */
 let selectedPaymentMethod = 'qr';
 let currentCheckoutGrandTotal = 0;
 let qrTimerInterval = null;
 let qrRemainingSeconds = 300;
 
-// เบอร์โทรศัพท์พร้อมเพย์ของเฮีย (ฝังไว้เรียบร้อยแล้ว)
+// เบอร์พร้อมเพย์ของเฮีย
 const PROMPTPAY_NUMBER = '0621485603'; 
 
-// ฟังก์ชันช่วยคำนวณ CRC16 สำหรับสร้างชุดข้อมูลพร้อมเพย์ (EMV Co) ฝั่ง JS
-function generatePromptPayPayload(id, amount) {
-  let target = id.trim();
-  if (target.length === 10 && target.startsWith('0')) {
-    target = '0066' + target.substring(1);
+// ฟังก์ชันสร้างชุดข้อมูลพร้อมเพย์มาตรฐาน EMV Co (รองรับยอดเงินอัตโนมัติ)
+function generatePromptPayPayload(mobileNumber, amount) {
+  let target = mobileNumber.trim();
+  if (target.startsWith('0')) {
+    target = '66' + target.substring(1);
   }
   
+  // Format เบอร์มือถือ Tag 29
   let targetField = '0016A000000677010101' + target;
+  let merchantAccount = '00' + ('0' + targetField.length).slice(-2) + targetField;
+  let merchantTag = '29' + ('0' + merchantAccount.length).slice(-2) + merchantAccount;
 
-  const merchantAccount = '00' + ('0' + targetField.length).slice(-2) + targetField;
-  const merchantTag = '29' + ('0' + merchantAccount.length).slice(-2) + merchantAccount;
-  
   let data = 
-    '000201' + 
-    '010212' + 
+    '000201' + // Payload Format Indicator
+    '010212' + // Initiation Method (12 = Dynamic QR)
     merchantTag + 
-    '5303764' + 
-    '5802TH';
+    '5303764' + // Currency (THB)
+    '5802TH';   // Country Code
 
   if (amount && amount > 0) {
-    const amtStr = Number(amount).toFixed(2);
+    let amtStr = Number(amount).toFixed(2);
     data += '54' + ('0' + amtStr.length).slice(-2) + amtStr;
   }
 
   data += '6304';
 
+  // คำนวณ CRC16
   let crc = 0xFFFF;
   for (let i = 0; i < data.length; i++) {
     crc ^= data.charCodeAt(i) << 8;
@@ -1021,16 +1022,11 @@ function generatePromptPayPayload(id, amount) {
   return data + crcHex;
 }
 
-// ระบบจัดการที่อยู่ (แยกตามบัญชีที่ล็อกอิน)
 function getUserShippingAddress() {
   if (!currentUser) return null;
   const saved = localStorage.getItem(`boxie_addr_${currentUser.id}`);
   if (saved) return JSON.parse(saved);
-  return {
-    name: currentUser.username || '',
-    phone: '',
-    address: ''
-  };
+  return { name: currentUser.username || '', phone: '', address: '' };
 }
 
 function renderAddressBox() {
@@ -1072,7 +1068,6 @@ window.toggleEditAddress = function() {
 
 window.saveAddress = function() {
   if (!currentUser) return;
-
   const name = document.getElementById('inputRecipientName').value.trim();
   const phone = document.getElementById('inputRecipientPhone').value.trim();
   const address = document.getElementById('inputRecipientAddress').value.trim();
@@ -1087,7 +1082,6 @@ window.saveAddress = function() {
   renderAddressBox();
 };
 
-// ระบบนับถอยหลัง QR Code 5 นาที
 function startQrTimer() {
   clearInterval(qrTimerInterval);
   qrRemainingSeconds = 300;
@@ -1096,7 +1090,6 @@ function startQrTimer() {
   qrTimerInterval = setInterval(() => {
     qrRemainingSeconds--;
     updateQrTimerDisplay();
-
     if (qrRemainingSeconds <= 0) {
       clearInterval(qrTimerInterval);
       handleQrExpired();
@@ -1127,7 +1120,6 @@ function handleQrExpired() {
   }
 }
 
-// เปิดหน้าต่าง Modal ชำระเงิน
 window.openCheckoutModal = async function() {
   if (!currentUser) {
     alert('กรุณาเข้าสู่ระบบก่อนทำการชำระเงิน');
@@ -1190,7 +1182,7 @@ window.closeCheckoutModal = function() {
   document.getElementById('checkoutModal').style.display = 'none';
 };
 
-// สลับช่องทางชำระเงิน (ใช้ QR Code แบบวาดสดผ่าน Library ที่เพิ่มใน HTML พร้อมเบอร์ 0621485603 ครบถ้วน)
+// สลับช่องทางชำระเงิน (ปรับใช้บริการ API เจน QR ที่รองรับ EMV Co สมบูรณ์ที่สุด)
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1213,34 +1205,23 @@ window.selectPaymentMethod = function(method) {
     }
 
     const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, currentCheckoutGrandTotal);
+    // เปลี่ยนมาใช้ API ตัวสร้าง QR มาตรฐานที่รองรับการอ่านค่าลึกของแอปธนาคารไทย
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(payload)}&ecc=M`;
 
     detailBox.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; margin-bottom: 6px; color: #ffeb3b; font-weight: 600;">
           กรุณาชำระเงินภายใน: <span id="qrCountdownText" style="background: rgba(255,235,59,0.15); padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: monospace;">05:00</span>
       </div>
       <div id="qrDisplayContainer" style="display: flex; justify-content: center; align-items: center;">
-        <div id="qrcodeCanvas" style="background: white; padding: 6px; border-radius: 8px; display: inline-block;"></div>
+        <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block;">
+          <img src="${qrApiUrl}" alt="PromptPay QR" style="width: 130px; height: 130px; display: block;">
+        </div>
       </div>
       <div style="margin-top: 6px; font-size: 13px; font-weight: 700; color: #ff4081;">
         ยอดชำระ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}
       </div>
       <div style="font-size: 10px; color: #888;">BOXIE OFFICIAL STORE (พร้อมเพย์)</div>
     `;
-
-    setTimeout(() => {
-      const container = document.getElementById('qrcodeCanvas');
-      if (container) {
-        container.innerHTML = '';
-        new QRCode(container, {
-          text: payload,
-          width: 130,
-          height: 130,
-          colorDark: "#000000",
-          colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.M
-        });
-      }
-    }, 50);
 
     startQrTimer();
 
