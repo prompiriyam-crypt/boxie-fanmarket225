@@ -968,7 +968,7 @@ async function loadCart() {
 }
 
 /* ============================================================
-   CHECKOUT, ADDRESS & PAYMENT SYSTEM (LOCAL QR DRAWING FIX)
+   CHECKOUT, ADDRESS & PAYMENT SYSTEM (STABLE API FIX)
    ============================================================ */
 let selectedPaymentMethod = 'qr';
 let currentCheckoutGrandTotal = 0;
@@ -982,12 +982,11 @@ const PROMPTPAY_NUMBER = '0621485603';
 function generatePromptPayPayload(mobileNumber, amount) {
   let target = mobileNumber.trim();
   
-  // แปลงเบอร์มือถือ 10 หลัก เป็นรูปแบบสากล (66 ตามด้วยเบอร์ตัด 0 ตัวแรก)
   if (target.startsWith('0')) {
     target = '66' + target.substring(1);
   }
   
-  // โครงสร้าง Tag 29 สำหรับพร้อมเพย์เบอร์โทรศัพท์
+  // AID พร้อมเพย์เบอร์โทรศัพท์มาตรฐาน
   let targetField = '0016A0000006770101010104' + target;
   let merchantAccount = '00' + ('0' + targetField.length).slice(-2) + targetField;
   let merchantTag = '29' + ('0' + merchantAccount.length).slice(-2) + merchantAccount;
@@ -1000,16 +999,13 @@ function generatePromptPayPayload(mobileNumber, amount) {
     '5802TH' +   // Country Code
     '5918BOXIE OFFICIAL'; // Merchant Name
 
-  // กำหนดจำนวนเงินสุทธิ (Tag 54)
   if (amount && amount > 0) {
     let amtStr = Number(amount).toFixed(2);
     data += '54' + ('0' + amtStr.length).slice(-2) + amtStr;
   }
 
-  // ปิดท้ายด้วย Tag CRC16
   data += '6304';
 
-  // คำนวณรหัส CRC16 (CCITT-FALSE)
   let crc = 0xFFFF;
   for (let i = 0; i < data.length; i++) {
     crc ^= data.charCodeAt(i) << 8;
@@ -1187,7 +1183,7 @@ window.closeCheckoutModal = function() {
   document.getElementById('checkoutModal').style.display = 'none';
 };
 
-// สลับช่องทางชำระเงิน (ใช้วิธีวาด QR Code สดบนหน้าเว็บผ่าน Library โดยตรง ไม่ผ่าน API นอก)
+// สลับช่องทางชำระเงิน (ใช้ QR API มาตรฐานที่เรนเดอร์ภาพผ่าน URL โดยตรง ป้องกันปัญหา Script โหลดไม่ทัน)
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1210,6 +1206,9 @@ window.selectPaymentMethod = function(method) {
     }
 
     const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, currentCheckoutGrandTotal);
+    
+    // ใช้บริการ QR Generator เสถียรสูง (QuickChart API) ที่รองรับการแปลงข้อความยาวๆ เป็น QR Code ชัดเจน
+    const qrApiUrl = `https://quickchart.io/qr?text=${encodeURIComponent(payload)}&size=150&margin=1`;
 
     detailBox.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px; margin-bottom: 6px; color: #ffeb3b; font-weight: 600;">
@@ -1218,7 +1217,7 @@ window.selectPaymentMethod = function(method) {
       <div id="qrDisplayContainer" style="display: flex; justify-content: center; align-items: center;">
         <div style="background: white; padding: 6px; border-radius: 8px; display: inline-block; text-align: center;">
           <div style="font-size: 9px; font-weight: 700; color: #003366; margin-bottom: 3px; border-bottom: 1px solid #ddd; padding-bottom: 2px;">THAI QR PAYMENT</div>
-          <div id="qrcodeCanvasBox" style="display: flex; justify-content: center;"></div>
+          <img src="${qrApiUrl}" alt="PromptPay QR" style="width: 130px; height: 130px; display: block; margin: 0 auto;">
           <div style="font-size: 8px; color: #555; margin-top: 3px; font-weight: 600;">นาย พรหมพิริยะ มหินกอง</div>
         </div>
       </div>
@@ -1227,22 +1226,6 @@ window.selectPaymentMethod = function(method) {
       </div>
       <div style="font-size: 10px; color: #888;">BOXIE OFFICIAL STORE (พร้อมเพย์)</div>
     `;
-
-    // สั่งวาด QR Code ทันทีด้วย QRCode JS Library ฝั่งเบราว์เซอร์
-    setTimeout(() => {
-      const container = document.getElementById('qrcodeCanvasBox');
-      if (container) {
-        container.innerHTML = '';
-        new QRCode(container, {
-          text: payload,
-          width: 130,
-          height: 130,
-          colorDark: "#000000",
-          colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.M
-        });
-      }
-    }, 50);
 
     startQrTimer();
 
@@ -1278,9 +1261,9 @@ window.selectPaymentMethod = function(method) {
         <div style="font-size: 13px; font-weight: 700; color: #ff8200;">ทรูมันนี่ วอลเล็ท (TrueMoney)</div>
         <div style="font-size: 11px; color: #888; margin-bottom: 6px;">โอนผ่านแอป TrueMoney Wallet</div>
         <div style="background: rgba(255,130,0,0.08); border: 1px solid rgba(255,130,0,0.3); border-radius: 8px; padding: 10px; width: 100%; box-sizing: border-box;">
-          <div style="font-size: 10px; color: #aaa;">เบอร์ทรูมันนี่:</div>
+          <div style="font-size: 10px; color: #aaa;">เลขที่บัญชี:</div>
           <div style="font-size: 16px; font-weight: 800; letter-spacing: 1px; color: #fff;">062-148-5603</div>
-          <div style="font-size: 11px; color: #ccc; margin-top: 2px;">ชื่อบัญชี: บ็อกซี่ แฟนมาร์เก็ต</div>
+          <div style="font-size: 11px; color: #ccc; margin-top: 2px;">ชื่อบัญชี: บจก. บ็อกซี่ แฟนมาร์เก็ต</div>
         </div>
         <div style="font-size: 13px; font-weight: 700; color: #ff4081; margin-top: 6px;">
           ยอดโอนสุทธิ: ฿ ${Number(currentCheckoutGrandTotal).toLocaleString()}
