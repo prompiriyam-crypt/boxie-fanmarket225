@@ -1,0 +1,618 @@
+:root {
+  --bg: #fffbf2;
+  --panel-bg: #ffffff;
+  --text-main: #2b2523;
+  --text-sub: #7a736e;
+  --primary-pink: #ff3b69;
+  --primary-pink-hover: #e62854;
+  --light-pink: #fff0f3;
+  --border: #f0e6d8;
+  --card-shadow: 0 4px 14px rgba(60, 40, 20, 0.05);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Prompt', sans-serif; }
+body { background-color: var(--bg); color: var(--text-main); }
+
+/* Header Navbar */
+.navbar {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-left, .nav-right { display: flex; align-items: center; gap: 14px; }
+.logo { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.logo-icon { font-size: 28px; }
+.logo-text { display: flex; flex-direction: column; }
+.brand-name { font-size: 20px; font-weight: 700; color: #111; line-height: 1; }
+.brand-sub { font-size: 11px; font-weight: 600; color: var(--primary-pink); }
+
+.logo-img {
+  width: 55px;
+  height: 55px;
+  object-fit: contain;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: #f8f6f0;
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 6px 16px;
+  width: 360px;
+  gap: 8px;
+}
+.search-bar input { border: none; background: transparent; outline: none; width: 100%; font-size: 13px; }
+
+.btn-sell-top {
+  background: var(--primary-pink);
+  color: #fff;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-sell-top:hover { background: var(--primary-pink-hover); }
+
+.btn-login-top {
+  background: #fff;
+  border: 1px solid var(--primary-pink);
+  color: var(--primary-pink);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-login-top:hover { background: var(--light-pink); }
+
+.icon-btn { background: none; border: none; font-size: 18px; cursor: pointer; position: relative; }
+.nav-badge { position: absolute; top: -6px; right: -6px; background: var(--primary-pink); color: #fff; font-size: 10px; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+
+.user-pill { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 4px 10px; border-radius: 20px; background: #faf8f5; border: 1px solid var(--border); }
+.nav-avatar { width: 26px; height: 26px; border-radius: 50%; }
+.cart-pill-btn { background: #fdf5ea; border: 1px solid #ebd8c0; padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.cart-badge { background: var(--primary-pink); color: #fff; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+
+/* Sub Navigation */
+.subnav { background: #fff; border-bottom: 1px solid var(--border); padding: 8px 32px; display: flex; gap: 24px; font-size: 13px; overflow-x: auto; white-space: nowrap; }
+.subnav a { text-decoration: none; color: var(--text-sub); display: flex; align-items: center; gap: 6px; }
+.subnav a.active, .subnav a:hover { color: var(--primary-pink); font-weight: 600; }
+
+/* Container & Layout */
+.container { max-width: 1400px; margin: 0 auto; padding: 24px 20px; }
+.layout-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
+
+/* Hero Banner (ภาพประกอบหัวเว็บ) */
+.hero-banner {
+  border-radius: 20px;
+  padding: 36px 40px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #fed1dc;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+}
+.hero-bg-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255, 240, 243, 0.95) 0%, rgba(255, 240, 243, 0.85) 50%, rgba(255, 240, 243, 0.4) 100%);
+  z-index: 2;
+}
+.hero-text { position: relative; z-index: 3; max-width: 500px; }
+.hero-badge { display: inline-block; background: #fff; color: var(--primary-pink); font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 12px; margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+.hero-text h1 { font-size: 34px; font-weight: 800; color: #222; letter-spacing: 1px; }
+.hero-text h2 { font-size: 18px; color: var(--primary-pink); margin-bottom: 6px; font-weight: 600; }
+.hero-text p { font-size: 13px; color: #555; margin-bottom: 16px; }
+.btn-hero { background: var(--primary-pink); color: #fff; border: none; padding: 10px 22px; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 13px; }
+.btn-hero:hover { background: var(--primary-pink-hover); }
+.speech-bubble { position: absolute; right: 30px; top: 30px; background: #fff; padding: 8px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.05); z-index: 3; }
+
+/* Categories */
+.section-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.cat-list { display: flex; gap: 12px; margin-bottom: 24px; overflow-x: auto; padding-bottom: 6px; }
+.cat-item { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 12px; min-width: 84px; text-align: center; cursor: pointer; transition: 0.2s; }
+.cat-item.active { background: var(--primary-pink); color: #fff; border-color: var(--primary-pink); }
+.cat-icon { font-size: 24px; display: block; margin-bottom: 4px; }
+.cat-name { font-size: 12px; font-weight: 500; }
+
+/* Filter Bar */
+.filter-bar { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 12px 16px; display: flex; gap: 10px; margin-bottom: 24px; align-items: center; flex-wrap: wrap; }
+.search-mini { display: flex; align-items: center; gap: 6px; background: #faf7f2; border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; flex-grow: 1; min-width: 140px; }
+.search-mini input { border: none; background: transparent; outline: none; font-size: 13px; width: 100%; }
+.filter-bar select { border: 1px solid var(--border); background: #fff; padding: 6px 10px; border-radius: 8px; font-size: 12px; outline: none; cursor: pointer; }
+
+/* Product Grid */
+.product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.prod-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; position: relative; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; }
+.prod-card:hover { transform: translateY(-3px); box-shadow: var(--card-shadow); }
+
+.prod-img-wrap { width: 100%; height: 180px; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #faf6f0; }
+.prod-img-real { width: 100%; height: 100%; object-fit: cover; }
+.prod-avatar-icon { font-size: 64px; display: flex; align-items: center; justify-content: center; user-select: none; }
+
+.prod-tag { position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; color: #fff; z-index: 2; }
+.tag-hot { background: #ff3b69; }
+.tag-sale { background: #ff4757; }
+.tag-new { background: #5352ed; }
+.fav-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.85); border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 14px; z-index: 2; }
+
+.prod-body { padding: 14px; display: flex; flex-direction: column; flex-grow: 1; }
+.prod-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; line-height: 1.3; cursor: pointer; }
+.prod-meta { font-size: 11px; color: var(--text-sub); margin-bottom: 10px; }
+.prod-seller { display: flex; align-items: center; gap: 6px; font-size: 11px; margin-bottom: 10px; color: #555; }
+.prod-seller img { width: 18px; height: 18px; border-radius: 50%; }
+
+.prod-bottom { margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
+.price-box { display: flex; align-items: baseline; gap: 4px; }
+.prod-price { font-size: 16px; font-weight: 700; color: var(--primary-pink); }
+.prod-orig-price { font-size: 11px; color: #aaa; text-decoration: line-through; }
+.btn-view { background: var(--primary-pink); color: #fff; border: none; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; }
+.btn-view:hover { background: var(--primary-pink-hover); }
+
+/* Sidebar Right */
+.sidebar-right { display: flex; flex-direction: column; gap: 16px; }
+.card-box { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: var(--card-shadow); }
+.box-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+
+/* Seller Card */
+.seller-profile { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+.seller-avatar { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); }
+.seller-name { font-weight: 700; font-size: 14px; }
+.seller-badge { background: #ede7f6; color: #5e35b1; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-left: 4px; }
+.seller-rating { font-size: 12px; color: #777; margin-top: 2px; }
+.seller-bio { font-size: 12px; color: #666; background: #faf7f2; padding: 8px 10px; border-radius: 8px; margin-bottom: 10px; line-height: 1.4; }
+.seller-stats { display: flex; justify-content: space-around; text-align: center; border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 8px 0; margin-bottom: 12px; }
+.seller-stats div b { display: block; font-size: 13px; color: #222; }
+.seller-stats div span { font-size: 10px; color: #888; }
+.seller-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn-outline-pink { background: var(--primary-pink); color: #fff; border: none; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.btn-outline-gray { background: #fff; border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+
+/* Chat Card */
+.chat-messages { height: 130px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; padding-right: 4px; }
+.msg { max-width: 80%; padding: 6px 10px; border-radius: 12px; font-size: 12px; line-height: 1.3; }
+.msg-buyer { align-self: flex-end; background: var(--primary-pink); color: #fff; border-bottom-right-radius: 2px; }
+.msg-seller { align-self: flex-start; background: #f0ede6; color: #222; border-bottom-left-radius: 2px; }
+.msg-time { font-size: 9px; opacity: 0.7; margin-top: 2px; text-align: right; }
+.chat-input-row { display: flex; gap: 6px; }
+.chat-input-row input { flex-grow: 1; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 12px; outline: none; }
+.btn-send { background: var(--primary-pink); color: #fff; border: none; border-radius: 8px; width: 34px; cursor: pointer; font-size: 13px; }
+
+/* Cart Card */
+.cart-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; max-height: 150px; overflow-y: auto; }
+.cart-line { display: flex; align-items: center; gap: 10px; font-size: 12px; padding-bottom: 6px; border-bottom: 1px dashed #f0e6d8; }
+.cart-thumb { width: 36px; height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; overflow: hidden; background: #faf6f0; }
+.cart-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.cart-info { flex-grow: 1; }
+.cart-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+.cart-price { color: var(--primary-pink); font-weight: 700; }
+.cart-qty { color: #888; font-size: 11px; }
+.cart-del-btn { background: none; border: none; color: #999; cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 4px; }
+.cart-del-btn:hover { color: #ff3b69; background: #fee8ed; }
+.cart-summary { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 8px; margin-bottom: 10px; font-size: 13px; }
+.cart-total { font-size: 16px; color: var(--primary-pink); font-weight: 700; }
+.btn-checkout { width: 100%; background: var(--primary-pink); color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
+.btn-checkout:hover { background: var(--primary-pink-hover); }
+
+/* Form Components */
+.form-group { margin-bottom: 12px; }
+.form-group label { font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px; color: #333; }
+.form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; }
+.form-group input:focus, .form-group select:focus { border-color: var(--primary-pink); }
+
+/* About Modal Body */
+.about-card-body { text-align: center; }
+.about-avatar-wrap { width: 84px; height: 84px; margin: 0 auto 12px; border-radius: 50%; overflow: hidden; border: 3px solid #ffccd8; background: #fff0f3; }
+.about-avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.about-text-box { text-align: left; background: #faf7f2; border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.6; color: #444; max-height: 280px; overflow-y: auto; }
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.modal-content {
+  background: #fff;
+  width: 100%;
+  max-width: 680px;
+  border-radius: 18px;
+  padding: 28px;
+  position: relative;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.15);
+  animation: modalPop 0.2s ease-out;
+}
+@keyframes modalPop {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #f1ede6;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.modal-body-grid { display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+.modal-img-wrap { width: 100%; height: 260px; background: #faf6f0; border-radius: 12px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
+.modal-tag-badge { position: absolute; top: 12px; left: 12px; font-size: 11px; padding: 4px 8px; border-radius: 6px; color: #fff; font-weight: 600; }
+.modal-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; line-height: 1.3; }
+.modal-price-wrap { display: flex; align-items: baseline; gap: 8px; margin-bottom: 16px; }
+.modal-price { font-size: 24px; font-weight: 800; color: var(--primary-pink); }
+.modal-orig-price { font-size: 13px; color: #aaa; text-decoration: line-through; }
+.modal-info-box { background: #faf7f2; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.info-row { display: flex; justify-content: space-between; }
+.info-label { color: var(--text-sub); }
+.modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-modal-cart { background: var(--primary-pink); color: #fff; border: none; padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 13px; }
+.btn-modal-chat { background: #fff; border: 1px solid var(--border); padding: 10px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 500; }
+
+.auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.auth-tab-btn { background: none; border: none; padding: 8px; font-size: 14px; font-weight: 600; color: #888; cursor: pointer; border-radius: 8px; }
+.auth-tab-btn.active { color: var(--primary-pink); background: var(--light-pink); }
+
+/* Footer */
+.footer { background: #fff; border-top: 1px solid var(--border); padding: 20px 32px; display: flex; justify-content: space-between; font-size: 12px; color: #777; margin-top: 40px; }
+.footer-links { display: flex; gap: 18px; }
+.footer-links a { color: #777; text-decoration: none; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .layout-grid { grid-template-columns: 1fr; }
+  .product-grid { grid-template-columns: repeat(3, 1fr); }
+  .search-bar { width: 240px; }
+}
+@media (max-width: 768px) {
+  .navbar { padding: 10px 16px; }
+  .search-bar { display: none; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .modal-body-grid { grid-template-columns: 1fr; }
+  .modal-img-wrap { height: 200px; }
+  .hide-mobile { display: none; }
+  .hero-banner { padding: 24px 20px; }
+  .hero-text h1 { font-size: 24px; }
+  .speech-bubble { display: none; }
+}
+
+/* ============================================================
+   DARK THEME VARIABLES & OVERRIDES
+   ============================================================ */
+body.dark-mode {
+  --bg: #131118;
+  --panel-bg: #1e1b24;
+  --text-main: #f3eff5;
+  --text-sub: #a79ea9;
+  --border: #2f2a38;
+  --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+
+body.dark-mode .navbar,
+body.dark-mode .subnav,
+body.dark-mode .footer,
+body.dark-mode .card-box,
+body.dark-mode .prod-card,
+body.dark-mode .filter-bar,
+body.dark-mode .modal-content,
+body.dark-mode .notif-dropdown {
+  background-color: var(--panel-bg);
+  border-color: var(--border);
+  color: var(--text-main);
+}
+
+body.dark-mode .brand-name {
+  color: #fff;
+}
+
+body.dark-mode .search-bar,
+body.dark-mode .search-mini,
+body.dark-mode .user-pill,
+body.dark-mode .cat-item,
+body.dark-mode .cart-pill-btn,
+body.dark-mode .seller-bio,
+body.dark-mode .msg-seller,
+body.dark-mode .about-text-box,
+body.dark-mode .modal-info-box,
+body.dark-mode .modal-img-wrap {
+  background-color: #272330;
+  border-color: var(--border);
+  color: var(--text-main);
+}
+
+body.dark-mode .search-bar input,
+body.dark-mode .search-mini input,
+body.dark-mode .chat-input-row input,
+body.dark-mode .form-group input,
+body.dark-mode .form-group select,
+body.dark-mode .filter-bar select {
+  background-color: #272330;
+  border-color: var(--border);
+  color: #fff;
+}
+
+body.dark-mode .seller-stats div b {
+  color: #fff;
+}
+
+body.dark-mode .btn-outline-gray,
+body.dark-mode .btn-modal-chat {
+  background-color: #272330;
+  border-color: var(--border);
+  color: #fff;
+}
+
+body.dark-mode .hero-overlay {
+  background: linear-gradient(90deg, rgba(25, 20, 32, 0.95) 0%, rgba(25, 20, 32, 0.85) 50%, rgba(25, 20, 32, 0.5) 100%);
+}
+
+body.dark-mode .hero-text h1 {
+  color: #fff;
+}
+
+body.dark-mode .hero-text p {
+  color: #ccc;
+}
+
+body.dark-mode .speech-bubble {
+  background-color: #272330;
+  color: #fff;
+}
+
+body.dark-mode .modal-close {
+  background: #332d3f;
+  color: #fff;
+}
+
+/* ============================================================
+   FIX LIGHT MODE TEXT COLOR (บังคับตัวหนังสือเป็นสีดำในโหมดสว่าง)
+   ============================================================ */
+body:not(.dark-mode) {
+  color: #111111 !important;
+}
+
+body:not(.dark-mode) h1, 
+body:not(.dark-mode) h2, 
+body:not(.dark-mode) h3, 
+body:not(.dark-mode) h4, 
+body:not(.dark-mode) h5, 
+body:not(.dark-mode) h6,
+body:not(.dark-mode) p, 
+body:not(.dark-mode) span, 
+body:not(.dark-mode) a,
+body:not(.dark-mode) label,
+body:not(.dark-mode) li {
+  color: #111111;
+}
+
+/* ยกเว้นปุ่มหรือข้อความที่เป็นสีพิเศษ (เช่น ปุ่มสีแดง, ป้ายแท็ก) ให้คงสีเดิมไว้ */
+body:not(.dark-mode) .btn,
+body:not(.dark-mode) .badge,
+body:not(.dark-mode) .text-white {
+  color: inherit;
+}
+
+/* ============================================================
+   NOTIFICATION DROPDOWN STYLES
+   ============================================================ */
+.notif-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: -60px;
+  width: 320px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  display: none;
+  flex-direction: column;
+  z-index: 1000;
+  overflow: hidden;
+  animation: notifPop 0.2s ease-out;
+}
+
+@keyframes notifPop {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notif-dropdown.show {
+  display: flex;
+}
+
+.notif-header {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.btn-clear-notif {
+  background: none;
+  border: none;
+  color: var(--primary-pink);
+  font-size: 11px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-clear-notif:hover {
+  text-decoration: underline;
+}
+
+.notif-list {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.notif-item {
+  padding: 12px 14px;
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.4;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.notif-item:hover {
+  background-color: rgba(255, 59, 105, 0.05);
+}
+
+.notif-item.unread {
+  background-color: var(--light-pink);
+}
+
+body.dark-mode .notif-item.unread {
+  background-color: #2b1f28;
+}
+
+.notif-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.notif-content p {
+  margin-bottom: 4px;
+}
+
+.notif-time {
+  font-size: 10px;
+  color: var(--text-sub);
+}
+
+/* ============================================================
+   FIX LINGERING WHITE TEXT & PRODUCT CARD STYLES (ฉบับสมบูรณ์แก้จบในตัว)
+   ============================================================ */
+
+/* บังคับการ์ด หัวข้อ และข้อความทั่วไปให้เป็นสีดำในโหมดสว่าง */
+body:not(.dark-mode) .card-box,
+body:not(.dark-mode) .prod-card,
+body:not(.dark-mode) .filter-bar,
+body:not(.dark-mode) .modal-content,
+body:not(.dark-mode) .notif-dropdown,
+body:not(.dark-mode) .speech-bubble {
+  color: #111111 !important;
+}
+
+/* บังคับชื่อสินค้า หัวข้อการ์ด และข้อความหลักให้เป็นสีดำชัดเจน (ยกเว้น Navbar และชื่อแอคเคาต์) */
+body:not(.dark-mode) .prod-card h3,
+body:not(.dark-mode) .prod-card p,
+body:not(.dark-mode) .card-box h3,
+body:not(.dark-mode) .card-box p {
+  color: #111111 !important;
+}
+
+/* บังคับข้อความในการ์ดสินค้าและป้ายราคา */
+body:not(.dark-mode) .prod-name,
+body:not(.dark-mode) .item-title,
+body:not(.dark-mode) .product-card h3,
+body:not(.dark-mode) .product-card p {
+  color: #111111 !important;
+}
+
+/* ดึงชื่อแอคเคาต์ตรงมุมขวาบนให้กลับมาแสดงสีเข้มชัดเจน ไม่ให้โดนกลืนหาย */
+body:not(.dark-mode) .user-name,
+body:not(.dark-mode) #currentUsername,
+body:not(.dark-mode) header span {
+  color: #1f2937 !important;
+}
+
+/* สำหรับโหมดมืด (Dark Mode): ให้การ์ดสินค้าเป็นสีเทาอ่อน/ขาว เพื่อให้อ่านตัวหนังสือชัดเจน */
+body.dark-mode .product-card, 
+body[data-theme="dark"] .product-card,
+.dark .product-card {
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* บังคับสีตัวหนังสือชื่อสินค้าและรายละเอียดข้างในการ์ดให้สว่างคมชัดและครบถ้วนทุกบรรทัด */
+body.dark-mode .product-card h3, 
+body.dark-mode .product-card .product-title, 
+body.dark-mode .product-card p,
+body.dark-mode .product-card span,
+body.dark-mode .product-card small,
+body.dark-mode .product-card div,
+body[data-theme="dark"] .product-card h3, 
+body[data-theme="dark"] .product-card .product-title, 
+body[data-theme="dark"] .product-card p,
+body[data-theme="dark"] .product-card span,
+body[data-theme="dark"] .product-card small,
+body[data-theme="dark"] .product-card div {
+  color: #1f2937 !important;
+}
+
+/* ============================================================
+   ส่วนจัดการสีข้อความในการ์ดสินค้า (โหมดมืดหลักของหน้าเว็บ)
+   ============================================================ */
+
+/* บังคับชื่อสินค้าให้เป็นสีขาวเด่นชัด */
+.product-card h3, 
+.product-card .product-title,
+.prod-card h3 {
+  color: #ffffff !important;
+  font-weight: bold !important;
+}
+
+/* บังคับรายละเอียดทั้งหมด (รวมถึงคำว่า สภาพดี, by: Store, และจำนวนสต็อก) ให้เป็นสีเทาสว่างชัดเจน */
+.product-card p,
+.product-card span,
+.product-card small,
+.product-card div,
+.product-card a,
+.prod-card p,
+.prod-card span,
+.prod-card small,
+.prod-card div {
+  color: #e5e7eb !important;
+}
+
+/* ราคาให้เป็นสีแดงเด่นชัด */
+.product-card .price, 
+.product-card [class*="price"],
+.price,
+[class*="price"] {
+  color: #ff334b !important;
+}

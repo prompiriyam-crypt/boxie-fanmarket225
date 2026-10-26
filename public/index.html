@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BOXIE FanMarket — ตลาดของสะสมแฟนคลับ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="nav-left">
+      <div class="logo" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+        <img src="images/logo.png" alt="BOXIE Logo" class="logo-img">
+        <div class="logo-text">
+          <span class="brand-name">BOXIE</span>
+          <span class="brand-sub">FanMarket</span>
+        </div>
+      </div>
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="ค้นหาของสะสมที่คุณต้องการ...">
+      </div>
+    </div>
+    <div class="nav-right">
+      <!-- ปุ่มลงขายแสดงเฉพาะเมื่อแอดมินล็อกอิน -->
+      <button class="btn-sell-top" id="btnSellTop" onclick="window.openSellModal()" style="display: none;">+ ลงขายสินค้า</button>
+      <!-- ปุ่มสลับโหมดมืด -->
+      <button class="icon-btn" id="themeToggleBtn" onclick="window.toggleDarkMode()" title="สลับโหมดกลางวัน/กลางคืน">🌙</button>
+      
+      <!-- ปุ่มการแจ้งเตือน พร้อม Dropdown Menu -->
+<div class="notif-wrapper">
+  <button class="icon-btn" id="notifBtn" onclick="window.toggleNotifDropdown()" title="การแจ้งเตือน">
+    🔔<span class="nav-badge" id="notifBadge" style="display:none;">0</span>
+  </button>
+
+  <!-- Dropdown แจ้งเตือน -->
+  <div class="notif-dropdown" id="notifDropdown" style="display:none;">
+    <div class="notif-header">
+      <span>🔔 การแจ้งเตือน</span>
+      <button class="btn-clear-notif" onclick="window.markAllNotifsAsRead()">อ่านทั้งหมด</button>
+    </div>
+    <!-- ปล่อยให้ id="notifList" ว่างไว้ เพื่อให้ JavaScript ดึงข้อมูลจริงจากตาราง messages มาใส่แบบอัตโนมัติครับ -->
+    <div class="notif-list" id="notifList">
+      <div style="padding:20px; text-align:center; color:#aaa; font-size:12px;">ยังไม่มีการแจ้งเตือนในขณะนี้</div>
+    </div>
+  </div>
+</div>
+      
+      <!-- ส่วนแสดงโปรไฟล์ / เข้าสู่ระบบ -->
+      <div id="authNavContainer"></div>
+      <button class="cart-pill-btn" onclick="document.getElementById('cart-widget').scrollIntoView({ behavior: 'smooth', block: 'center' });">
+        🛒 <span class="hide-mobile">ตะกร้า</span> <span class="cart-badge" id="navCartCount">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Sub Navigation -->
+  <nav class="subnav">
+    <a href="#" class="active">🏠 หน้าแรก</a>
+    <a href="#" onclick="window.openOrdersModal(); return false;" class="nav-item">📋 คำสั่งซื้อ & ติดตามพัสดุ</a>
+    <a href="#" id="adminPanelNavBtn" onclick="window.openAdminModal(); return false;" class="nav-item" style="display: none; color: #ff334b; font-weight: bold;">⚙️ จัดการหลังบ้าน (แอดมิน)</a>
+    <a href="javascript:void(0)" onclick="window.openAboutModal()">ℹ️ เกี่ยวกับเรา</a>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container layout-grid">
+    <main class="content-left">
+
+      <!-- Hero Banner -->
+      <section class="hero-banner">
+        <img class="hero-bg-img" id="heroBannerImg" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80" alt="BOXIE FanMarket Banner">
+        <div class="hero-overlay"></div>
+        <div class="hero-text">
+          <div class="hero-badge">BOXIE OFFICIAL STORE</div>
+          <h1>FANMARKET</h1>
+          <h2>ตลาดของสะสมแฟนคลับของแท้</h2>
+          <p>รวมของสะสม พวงกุญแจ แท่งไฟ การ์ด และตุ๊กตาสภาพพรีเมียม</p>
+          <button class="btn-hero" onclick="scrollToSection('product-section')">เลือกชมสินค้าทั้งหมด →</button>
+        </div>
+        <div class="hero-deco">
+          <span class="speech-bubble">ของสะสมที่คุณรัก รวมอยู่ที่นี่ </span>
+        </div>
+      </section>
+
+      <!-- หมวดหมู่ยอดนิยม -->
+      <section class="categories-section" id="categories-section">
+        <div class="section-title"><span>📦 หมวดหมู่สินค้า</span></div>
+        <div class="cat-list" id="categoryList"></div>
+      </section>
+
+      <!-- Filter Bar -->
+      <section class="filter-bar" id="product-section">
+        <div class="search-mini">
+          <span>🔍</span>
+          <input type="text" id="filterInput" placeholder="ค้นหาชื่อสินค้า...">
+        </div>
+        <select id="conditionFilter">
+          <option value="all">สภาพสินค้า : ทั้งหมด </option>
+          <option value="สภาพดี">สภาพดี</option>
+          <option value="มีรอยเล็กน้อย">มีรอยเล็กน้อย</option>
+          <option value="แกะแล้ว">แกะแล้ว</option>
+        </select>
+        <select id="deliveryFilter">
+          <option value="all">การจัดส่ง : ทั้งหมด </option>
+          <option value="พร้อมส่ง">พร้อมส่ง</option>
+          <option value="นัดรับ">นัดรับ</option>
+        </select>
+        <select id="sortFilter">
+          <option value="new">เรียงตาม : ล่าสุด </option>
+          <option value="price_asc">ราคา : ต่ำ - สูง</option>
+          <option value="price_desc">ราคา : สูง - ต่ำ</option>
+        </select>
+      </section>
+
+      <!-- รายการสินค้า -->
+      <section class="products-section">
+        <div class="section-title"><span>🔥 สินค้าทั้งหมด</span></div>
+        <div class="product-grid" id="productGrid"></div>
+      </section>
+    </main>
+
+    <!-- Sidebar Right -->
+    <aside class="sidebar-right">
+
+      <!-- ข้อมูลร้านค้าเจ้าของเว็บ -->
+      <div class="card-box seller-card" id="sellerBox">
+        <div class="box-title">👤 เจ้าของร้าน (ผู้ลงขาย)</div>
+        <div class="seller-profile">
+          <img src="images/my-avatar.png" alt="Seller Avatar" class="seller-avatar" id="sellerAvatar">
+          <div class="seller-info">
+            <div class="seller-name-row">
+              <span class="seller-name" id="sellerName">-</span>
+              <span class="seller-badge" id="sellerBadge">Official Shop</span>
+            </div>
+            <div class="seller-rating">★ <span id="sellerRating">5.0</span> (<span id="sellerSales">0</span> ยอดจำหน่าย)</div>
+          </div>
+        </div>
+        <div class="seller-bio" id="sellerBio">"ยินดีต้อนรับสู่ BOXIE แหล่งรวมของสะสมคุณภาพ แพ็คแน่นหนาทุกชิ้นครับ"</div>
+        <div class="seller-stats">
+          <div><b id="sellerItems">0</b><span>สินค้าพร้อมส่ง</span></div>
+          <div><b id="sellerFollowers">1</b><span>ผู้ติดตาม</span></div>
+          <div><b id="sellerJoined">-</b><span>เปิดร้านเมื่อ</span></div>
+        </div>
+        <div class="seller-actions">
+          <button class="btn-outline-pink" onclick="alert('กดติดตามร้านค้าสำเร็จแล้ว!')">ติดตามร้านค้า</button>
+          <button class="btn-outline-gray" onclick="window.openContactModal()">สอบถามร้านค้า</button>
+        </div>
+      </div>
+
+      <!-- ตะกร้าสินค้า -->
+      <div class="card-box cart-card" id="cart-widget">
+        <div class="box-title">🛒 ตะกร้าของฉัน (<span id="cartCount">0</span>)</div>
+        <div class="cart-items" id="cartItemList"></div>
+        <div class="cart-summary">
+          <span>ยอดรวม</span>
+          <b class="cart-total" id="cartTotal">฿ 0</b>
+        </div>
+        <button class="btn-checkout" onclick="window.openCheckoutModal()">ดูตะกร้าสินค้า</button>
+      </div>
+
+    </aside>
+  </div>
+
+  <!-- Modal แสดงเงื่อนไขการสั่งซื้อ / นโยบายความเป็นส่วนตัว -->
+<div class="modal-overlay" id="policyModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999999; align-items:center; justify-content:center;">
+  <div class="modal-content" style="background:#1e1e28; color:#fff; width:560px; max-width:95%; max-height:85vh; border-radius:16px; padding:24px; overflow-y:auto; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:sans-serif; position:relative;">
+    
+    <!-- ปุ่มปิด (กากบาท) -->
+    <button onclick="closePolicyModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:#aaa; font-size:22px; cursor:pointer;">✕</button>
+    
+    <!-- หัวข้อ Modal (จะเปลี่ยนข้อความตามที่เรากดเปิดได้) -->
+    <h3 id="policyModalTitle" style="margin-top:0; margin-bottom: 16px; font-size: 18px; font-weight: 700; color: #ff334b;">📄 เงื่อนไขและนโยบาย</h3>
+    
+    <!-- เนื้อหาภายใน Modal -->
+    <div id="policyModalBody" style="color: #ccc; font-size: 14px; line-height: 1.6; text-align: left;">
+      กำลังโหลดข้อมูล...
+    </div>
+
+    <!-- ปุ่มปิดด้านล่าง -->
+    <button onclick="closePolicyModal()" style="width:100%; margin-top: 20px; background:#333; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px;">
+      เข้าใจแล้ว
+    </button>
+  </div>
+</div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-left"><b>BOXIE FanMarket</b> · ของสะสมที่คุณรัก จัดส่งตรงถึงบ้านคุณ</div>
+    <div class="footer-links">
+      <a href="javascript:void(0)" onclick="window.openAboutModal()">เกี่ยวกับเรา</a>
+      <a href="javascript:void(0)" onclick="openPolicyModal('terms')">เงื่อนไขการสั่งซื้อ</a>
+      <a href="javascript:void(0)" onclick="openPolicyModal('privacy')">นโยบายความเป็นส่วนตัว</a>
+    </div>
+  </footer>
+
+  <!-- 👤 Modal โปรไฟล์ผู้ใช้ (User Profile Modal) -->
+<div id="profileModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999999; align-items:center; justify-content:center;">
+  <div style="background:#1e1e28; color:#fff; width:520px; max-width:95%; max-height:85vh; border-radius:16px; padding:20px; display:flex; flex-direction:column; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:sans-serif;">
+    
+    <!-- ส่วนหัว -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:8px; flex-shrink:0;">
+      <h3 style="margin:0; font-size:18px;">👤 ตั้งค่าโปรไฟล์ส่วนตัว</h3>
+      <button onclick="window.closeProfileModal()" style="background:none; border:none; color:#aaa; font-size:22px; cursor:pointer;">✕</button>
+    </div>
+
+    <!-- แท็บเมนูย่อย -->
+    <div style="display:flex; gap:10px; margin-bottom:12px; flex-shrink:0;">
+      <button id="profileTabInfoBtn" onclick="window.switchProfileTab('info')" style="flex:1; padding:8px; background:#ff334b; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:12px;">ข้อมูลทั่วไป & รูปภาพ</button>
+      <button id="profileTabPassBtn" onclick="window.switchProfileTab('password')" style="flex:1; padding:8px; background:#2a2a38; color:#ccc; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:12px;">เปลี่ยนรหัสผ่าน</button>
+    </div>
+
+    <!-- ส่วนเนื้อหาที่เลื่อนได้ (Scrollable Body) -->
+    <div style="overflow-y:auto; flex-grow:1; padding-right:4px;">
+      
+      <!-- ส่วนที่ 1: ข้อมูลทั่วไป & รูปภาพ -->
+      <div id="profileSectionInfo">
+        <div style="text-align:center; margin-bottom:14px;">
+          <!-- 🖼️ แก้ไข ID และเพิ่ม onerror ป้องกันรูปพัง -->
+          <img id="profilePreviewAvatar" src="" alt="Avatar" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #ff334b; margin-bottom:8px; background:#333;" onerror="this.src='images/my-avatar.png'">
+          <div>
+            <label style="background:#3b82f6; color:#fff; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:bold; display:inline-block;">
+              📷 เลือกรูปจากเครื่อง
+              <input type="file" id="profileAvatarFile" accept="image/*" style="display:none;" onchange="window.previewAvatarFile(this)">
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">ชื่อที่แสดง (Display Name):</label>
+          <input type="text" id="profileDisplayName" style="width:100%; padding:8px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:13px;">
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">ประวัติย่อ (Bio):</label>
+          <textarea id="profileBio" rows="2" style="width:100%; padding:8px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:13px; resize:none;"></textarea>
+        </div>
+
+        <h4 style="margin:14px 0 6px; font-size:13px; color:#ff334b; border-bottom:1px dashed #333; padding-bottom:4px;">📍 ที่อยู่จัดส่งหลัก</h4>
+        <div style="margin-bottom:8px;">
+          <label style="font-size:11px; color:#aaa;">ชื่อผู้รับ:</label>
+          <input type="text" id="profileAddrName" style="width:100%; padding:6px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:12px;">
+        </div>
+        <div style="margin-bottom:8px;">
+          <label style="font-size:11px; color:#aaa;">เบอร์โทรศัพท์:</label>
+          <input type="text" id="profileAddrPhone" style="width:100%; padding:6px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:12px;">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:11px; color:#aaa;">ที่อยู่จัดส่ง:</label>
+          <textarea id="profileAddrText" rows="2" style="width:100%; padding:6px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:12px; resize:none;"></textarea>
+        </div>
+
+        <button onclick="window.saveGeneralProfile()" style="width:100%; background:#10b981; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; margin-bottom:10px;">
+          💾 บันทึกการเปลี่ยนแปลงข้อมูลทั่วไป
+        </button>
+      </div>
+
+      <!-- ส่วนที่ 2: เปลี่ยนรหัสผ่าน -->
+      <div id="profileSectionPassword" style="display:none;">
+        <div style="margin-bottom:12px;">
+          <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">รหัสผ่านเดิม:</label>
+          <input type="password" id="profileOldPassword" placeholder="กรอกรหัสผ่านปัจจุบัน..." style="width:100%; padding:8px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:13px;">
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">รหัสผ่านใหม่ (ต้องมี 8+ ตัว, พิมพ์ใหญ่, พิมพ์เล็ก, ตัวเลข):</label>
+          <input type="password" id="profileNewPassword" placeholder="ตั้งรหัสผ่านใหม่..." style="width:100%; padding:8px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:13px;">
+        </div>
+
+        <div style="font-size:11px; color:#888; background:#15151c; padding:8px; border-radius:6px; margin-bottom:16px; line-height:1.5;">
+          💡 <b>เงื่อนไขความปลอดภัย:</b> รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 8 ตัวอักษร มีภาษาอังกฤษตัวใหญ่ (A-Z) ตัวเล็ก (a-z) และตัวเลข (0-9) ครบถ้วนครับ
+        </div>
+
+        <button onclick="window.saveNewPassword()" style="width:100%; background:#ff334b; color:#fff; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; margin-bottom:10px;">
+          🔒 เปลี่ยนรหัสผ่านใหม่
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ส่วนล่างสุด: ปุ่มออกจากระบบ (วางอยู่นอกพื้นที่เลื่อนเพื่อให้กดง่ายตลอดเวลา) -->
+    <div style="border-top:1px solid #333; padding-top:10px; margin-top:8px; flex-shrink:0;">
+      <button onclick="window.logoutUser()" style="width:100%; background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3); padding:8px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:13px;">
+        🚪 ออกจากระบบ (Logout)
+      </button>
+    </div>
+
+  </div>
+</div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- 1. Modal เกี่ยวกับเรา (About Us) -->
+  <div class="modal-overlay" id="aboutModal">
+    <div class="modal-content" style="max-width: 540px;">
+      <button class="modal-close" onclick="window.closeAboutModal()">✕</button>
+      <div class="about-card-body">
+        <div class="about-avatar-wrap">
+          <img src="images/boxieAdmin.png" alt="Creator Profile" id="aboutAvatar">
+        </div>
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">BOXIE FanMarket</h2>
+        <div style="font-size: 13px; color: var(--primary-pink); font-weight: 600; margin-bottom: 14px;">ผู้ก่อตั้ง & ผู้ดูแลระบบร้านค้า</div>
+        <div class="about-text-box">
+          <p>ยินดีต้อนรับทุกท่านสู่เว็บไซต์ BOXIE FanMarket ตลาดรวมของสะสมแฟนคลับของแท้ 100%</p>
+          <br>
+          <p><b>วัตถุประสงค์ของเว็บไซต์:</b> แพลตฟอร์มสำหรับแบ่งปัน ส่งต่อ และกระจายของสะสมหายาก เช่น ตุ๊กตา, การ์ดสะสม (Photocard), เสื้อผ้า และไอเทมจากคอนเสิร์ต เพื่อให้แฟนคลับทุกคนได้ครอบครองของที่รักในสภาพที่ดีที่สุด</p>
+          <br>
+          <p><b>การการันตี:</b> แพ็คพัสดุประกบหนาแน่นด้วยบับเบิลอย่างดี จัดส่งรวดเร็ว มีรอบส่งของทุกวันครับ</p>
+          <br>
+          <p><b>ช่องทางติดต่อ:</b> ติดต่อสอบถามได้ผ่าน Official Store ได้ตลอดเวลาครับ</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Modal ล็อกอิน / สมัครสมาชิก -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-content" style="max-width: 440px;">
+      <button class="modal-close" onclick="window.closeAuthModal()">✕</button>
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">เข้าสู่ระบบ</button>
+        <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">สมัครสมาชิก</button>
+      </div>
+
+      <form id="loginForm" onsubmit="window.submitLogin(event)">
+        <div class="form-group">
+          <label>ชื่อผู้ใช้ หรือ อีเมล</label>
+          <input type="text" id="loginIdentifier" required placeholder="กรอกชื่อผู้ใช้ เช่น somchai หรือ admin">
+        </div>
+        <div class="form-group">
+          <label>รหัสผ่าน</label>
+          <input type="password" id="loginPassword" required placeholder="กรอกรหัสผ่าน">
+        </div>
+        <button type="submit" class="btn-checkout" style="padding: 12px; margin-top: 8px;">เข้าสู่ระบบ</button>
+        <div style="font-size: 11px; color:#888; text-align:center; margin-top: 10px;">
+          <!-- * บัญชีสมาชิกทั่วไป: <b>somchai</b> (รหัส: 123456)<br>
+          * บัญชีเจ้าของร้านผู้ลงขาย: <b>admin</b> (รหัส: 123456) -->
+        </div>
+      </form>
+
+      <form id="registerForm" onsubmit="window.submitRegister(event)" style="display: none;">
+        <div class="form-group">
+          <label>ชื่อ-นามสกุล หรือชื่อเล่น *</label>
+          <input type="text" id="regDisplayName" required placeholder="เช่น น้องแพรว แฟนคลับ">
+        </div>
+        <div class="form-group">
+          <label>ชื่อผู้ใช้ (Username) *</label>
+          <input type="text" id="regUsername" required placeholder="ภาษาอังกฤษ เช่น praew_fan">
+        </div>
+        <div class="form-group">
+          <label>อีเมล *</label>
+          <input type="email" id="regEmail" required placeholder="เช่น praew@gmail.com">
+        </div>
+        <div class="form-group">
+          <label>รหัสผ่าน *</label>
+          <input type="password" id="regPassword" required placeholder="กำหนดรหัสผ่าน">
+        </div>
+        <button type="submit" class="btn-checkout" style="padding: 12px; margin-top: 8px;">ยืนยันการสมัครสมาชิก</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Modal รายละเอียดสินค้า -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="window.closeProductModal()">✕</button>
+      <div class="modal-body-grid">
+        <div class="modal-img-wrap" id="modalImgBox">
+          <img id="modalImgDisplay" src="" alt="Product Image" style="display: none; width:100%; height:100%; object-fit:cover;">
+          <div id="modalFallbackIcon" class="prod-avatar-icon" style="font-size: 80px;"></div>
+          <div class="modal-tag-badge" id="modalBadge"></div>
+        </div>
+        <div class="modal-detail">
+          <h2 class="modal-title" id="modalTitle"></h2>
+          <div class="modal-price-wrap">
+            <span class="modal-price" id="modalPrice"></span>
+            <span class="modal-orig-price" id="modalOrigPrice"></span>
+          </div>
+          <div class="modal-info-box">
+            <div class="info-row"><span class="info-label">สภาพสินค้า:</span><b id="modalCondition"></b></div>
+            <div class="info-row"><span class="info-label">การจัดส่ง:</span><b id="modalDelivery"></b></div>
+            <div class="info-row"><span class="info-label">ผู้จัดจำหน่าย:</span><b id="modalSellerName">BOXIE Official Store</b></div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn-modal-cart" id="modalBtnCart">🛒 เพิ่มลงตะกร้า</button>
+            <button class="btn-modal-chat" id="modalBtnChat" onclick="window.openContactModal()">💬 สอบถามร้านค้า</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Modal ลงขายสินค้า (เฉพาะแอดมิน) -->
+<div class="modal-overlay" id="sellModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999999; align-items:center; justify-content:center;">
+  <div class="modal-content" style="background:#1e1e28; color:#fff; width:520px; max-width:95%; max-height:85vh; border-radius:16px; padding:24px; overflow-y:auto; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:sans-serif; position:relative;">
+    <button class="modal-close" onclick="window.closeSellModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:#aaa; font-size:22px; cursor:pointer;">✕</button>
+    <h3 style="margin-top:0; margin-bottom: 16px; font-size: 18px; font-weight: 700;">🛍️ ลงขายของสะสมชิ้นใหม่ (Admin)</h3>
+    <form id="sellForm" onsubmit="window.submitNewProduct(event)">
+      <div class="form-group" style="margin-bottom:12px;">
+        <label style="display:block; margin-bottom:6px; font-size:13px; color:#ccc;">ชื่อสินค้า / ของสะสม *</label>
+        <input type="text" id="sellTitle" required placeholder="เช่น ตุ๊กตา Krist GMMTV, การ์ดพิเศษ" style="width:100%; padding:8px 12px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:13px;">
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+    <label style="display:block; margin-bottom:6px; font-size:13px; color:#ccc;">อัปโหลดรูปภาพสินค้า</label>
+    <input type="file" id="sellImage" accept="image/*" style="width:100%; padding:6px 12px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:13px;">
+    </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom:12px;">
+          <div class="form-group">
+          <label style="display:block; margin-bottom:6px; font-size:13px; color:#ccc;">ราคาขาย (บาท) *</label>
+          <input type="number" id="sellPrice" required placeholder="เช่น 750" style="width:100%; padding:8px 12px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:13px;">
+        </div>
+        <div class="form-group">
+          <label style="display:block; margin-bottom:6px; font-size:13px; color:#ccc;">ป้ายกำกับ</label>
+          <select id="sellBadge" style="width:100%; padding:8px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:13px;">
+            <option value="">ไม่มี</option>
+            <option value="มาใหม่">มาใหม่</option>
+            <option value="ขายดี">ขายดี</option>
+            <option value="ลดราคา">ลดราคา</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label style="display:block; margin-bottom:6px; font-size:13px; color:#ccc;">หมวดหมู่สินค้า</label>
+        <select id="sellCategory" style="width:100%; padding:8px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:13px;"></select>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom:16px;">
+        <div class="form-group">
+          <label style="display:block; margin-bottom:6px; font-size:13px; color:#ccc;">สภาพสินค้า</label>
+          <select id="sellCondition" style="width:100%; padding:8px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:13px;">
+            <option value="สภาพดี">สภาพดี</option>
+            <option value="มีรอยเล็กน้อย">มีรอยเล็กน้อย</option>
+            <option value="แกะแล้ว">แกะแล้ว</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label style="display:block; margin-bottom:6px; font-size:13px; color:#ccc;">การจัดส่ง</label>
+          <select id="sellDelivery" style="width:100%; padding:8px; border-radius:6px; background:#2a2a38; color:#fff; border:1px solid #444; box-sizing:border-box; font-size:13px;">
+            <option value="พร้อมส่ง">พร้อมส่ง</option>
+            <option value="นัดรับ">นัดรับ</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" style="width:100%; background:#ff334b; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px;">ลงขายสินค้าทันที</button>
+    </form>
+  </div>
+</div>
+
+  <!-- 5. Modal สรุปคำสั่งซื้อ & ชำระเงิน -->
+  <div class="modal-overlay" id="checkoutModal" style="display: none;">
+    <div class="modal-content" style="max-width: 820px; width: 95%; border-radius: 20px; padding: 22px;">
+      <button class="modal-close" onclick="window.closeCheckoutModal()">✕</button>
+      
+      <h3 style="margin-bottom: 16px; font-size: 19px; font-weight: 700; text-align: center;">📦 สรุปคำสั่งซื้อ & ชำระเงิน</h3>
+      
+      <!-- แบ่ง 2 ฝั่ง ซ้าย-ขวา -->
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; align-items: start;">
+        
+        <!-- ฝั่งซ้าย: ข้อมูลที่อยู่จัดส่ง + รายการสินค้า + สรุปคำสั่งซื้อ -->
+        <div style="display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto; padding-right: 4px;">
+          
+          <!-- 1. กล่องที่อยู่จัดส่ง -->
+          <div style="border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: rgba(255,255,255,0.03); position: relative; border-top: 3px dashed #ff4081;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                <span>📍</span> ที่อยู่ในการจัดส่ง
+              </div>
+              <button type="button" onclick="toggleEditAddress()" style="background: none; border: none; color: var(--primary-pink); font-size: 12px; font-weight: 600; cursor: pointer;">
+                ✏️ แก้ไข
+              </button>
+            </div>
+
+            <!-- ข้อความแสดงที่อยู่ -->
+            <div id="addressDisplayView">
+              <div style="font-size: 13px; font-weight: 600; color: #fff;">
+                <span id="displayRecipientName">-</span> 
+                <span id="displayRecipientPhone" style="color: #aaa; font-weight: 400; margin-left: 6px;">-</span>
+              </div>
+              <div id="displayRecipientAddress" style="font-size: 12px; color: #bbb; margin-top: 4px; line-height: 1.4;">-</div>
+            </div>
+
+            <!-- ฟอร์มแก้ไขที่อยู่ (ซ่อนไว้ก่อน) -->
+            <div id="addressEditView" style="display: none; flex-direction: column; gap: 8px; margin-top: 8px;">
+              <input type="text" id="inputRecipientName" placeholder="ชื่อ-นามสกุล ผู้รับ" style="width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: #1a1a20; color: #fff; font-size: 12px; box-sizing: border-box;">
+              <input type="text" id="inputRecipientPhone" placeholder="เบอร์โทรศัพท์ติดต่อ" style="width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: #1a1a20; color: #fff; font-size: 12px; box-sizing: border-box;">
+              <textarea id="inputRecipientAddress" rows="2" placeholder="บ้านเลขที่, หมู่, ถนน, ตำบล, อำเภอ, จังหวัด, รหัสไปรษณีย์" style="width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: #1a1a20; color: #fff; font-size: 12px; box-sizing: border-box; resize: none;"></textarea>
+              <button type="button" onclick="saveAddress()" style="background: var(--primary-pink); color: white; border: none; border-radius: 6px; padding: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">บันทึกที่อยู่</button>
+            </div>
+          </div>
+
+          <!-- 2. รายการสินค้าในตะกร้า -->
+          <div>
+            <div style="font-size: 12px; font-weight: 600; color: #aaa; margin-bottom: 6px;">🛒 รายการสินค้า (<span id="checkoutTotalCount">0</span> รายการ):</div>
+            <div id="checkoutItemsList" style="max-height: 140px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; padding: 10px; background: rgba(255,255,255,0.03);"></div>
+          </div>
+
+          <!-- กล่องแนบสลิปและตรวจสอบยอดโอน -->
+<div style="background: #23232e; border: 1px dashed #ff334b; border-radius: 12px; padding: 14px; margin-top: 12px; margin-bottom: 14px; text-align: left;">
+  <div style="font-size: 13px; font-weight: bold; color: #ff334b; margin-bottom: 8px;">
+    📤 แนบสลิปโอนเงินเพื่อยืนยันคำสั่งซื้อ
+  </div>
+  
+  <label style="font-size: 12px; color: #ccc; display: block; margin-bottom: 4px;">1. เลือกรูปภาพสลิปโอนเงิน *</label>
+  <input type="file" id="slipFileInput" name="slip" accept="image/*" onchange="window.previewSlip(event)" style="width: 100%; font-size: 12px; color: #fff; margin-bottom: 10px;">
+  
+  <!-- รูปตัวอย่างสลิปที่อัปโหลด -->
+  <div id="slipPreviewBox" style="display: none; text-align: center; margin-bottom: 10px;">
+    <img id="slipPreviewImg" src="" style="max-height: 110px; border-radius: 8px; border: 1px solid #555;">
+  </div>
+
+  <label style="font-size: 12px; color: #ccc; display: block; margin-bottom: 4px;">2. ยืนยันยอดเงินที่โอนตามสลิป (บาท) *</label>
+  <input type="number" id="slipAmountInput" name="entered_amount" placeholder="กรอกยอดโอนให้ตรงกับยอดชำระ (เช่น 700)" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #444; background: #181820; color: #fff; font-size: 13px;">
+</div>
+
+          <!-- 3. สรุปคำสั่งซื้อ -->
+          <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
+            <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px;">สรุปคำสั่งซื้อ</div>
+            
+            <div style="display:flex; justify-content:space-between; margin-bottom: 6px; font-size: 12px; color: #ccc;">
+              <span>ยอดรวมค่าสินค้า</span>
+              <b id="checkoutSubtotal" style="color: #fff;">฿ 0</b>
+            </div>
+            
+           <!-- บรรทัดภาษีมูลค่าเพิ่ม -->
+            <div style="display:flex; justify-content:space-between; margin-bottom: 6px; font-size: 12px; color: #ccc;">
+              <span>ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
+              <span id="checkoutVat">฿ 0</span>
+            </div>
+
+          <!-- บรรทัดค่าจัดส่ง (แยกออกมาเป็นอีกแถวชัดเจน) -->
+            <div style="display:flex; justify-content:space-between; margin-bottom: 6px; font-size: 12px; color: #ccc;">
+              <span>ยอดรวมค่าจัดส่ง (พัสดุกันกระแทก)</span>
+              <b style="color: #fff;">฿ 50</b>
+            </div>
+                      
+            <div style="display:flex; justify-content:space-between; border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 4px; font-size: 15px;">
+              <b style="color: #fff;">ทั้งหมด</b>
+              <b id="checkoutGrandTotal" style="color: var(--primary-pink); font-size: 18px;">฿ 0</b>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ฝั่งขวา: ปุ่มเลือกช่องทางการชำระเงิน + QR / เลขบัญชี -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 13px; font-weight: 700;">วิธีการชำระเงิน</div>
+          
+          <!-- 3 ช่องทางพร้อมโลโก้จริงจากเว็บ Official -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+            <!-- 1. พร้อมเพย์ -->
+            <div class="pay-method-card active" id="payCardQr" onclick="window.selectPaymentMethod('qr')" style="border: 2px solid var(--primary-pink); border-radius: 10px; padding: 10px 4px; text-align: center; cursor: pointer; background: rgba(255, 64, 129, 0.08); transition: 0.2s;">
+              <div style="height: 28px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c5/PromptPay-logo.png?utm_source=th.wikipedia.org&utm_campaign=index&utm_content=original" alt="PromptPay" style="height: 22px; max-width: 90%; object-fit: contain;">
+              </div>
+              <div style="font-size: 11px; font-weight: 700;">พร้อมเพย์</div>
+              <div style="font-size: 9px; color: #ff4081; font-weight: 600;">สแกน QR</div>
+            </div>
+
+            <!-- 2. กรุงไทย -->
+            <div class="pay-method-card" id="payCardKtb" onclick="window.selectPaymentMethod('ktb')" style="border: 1px solid var(--border); border-radius: 10px; padding: 10px 4px; text-align: center; cursor: pointer; background: rgba(255,255,255,0.03); transition: 0.2s;">
+              <div style="height: 28px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">
+                <img src="https://static.thairath.co.th/media/dFQROr7oWzulq5Fa5yCh5C5yMCU69cuJxs6ugkVM3jj008mx0Rxf77XdsDpKCag9D75.jpg" alt="KTB" style="height: 40px; width: 40px; object-fit: contain; border-radius: 6px;">
+              </div>
+              <div style="font-size: 11px; font-weight: 700;">กรุงไทย</div>
+              <div style="font-size: 9px; color: #00a8e8;">โอนบัญชี</div>
+            </div>
+
+            <!-- 3. ทรูมันนี่ -->
+            <div class="pay-method-card" id="payCardTrue" onclick="window.selectPaymentMethod('true')" style="border: 1px solid var(--border); border-radius: 10px; padding: 10px 4px; text-align: center; cursor: pointer; background: rgba(255,255,255,0.03); transition: 0.2s;">
+              <div style="height: 28px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">
+                <img src="https://images.seeklogo.com/logo-png/36/1/truemoney-wallet-logo-png_seeklogo-367826.png" alt="TrueMoney" style="height: 24px; width: 24px; object-fit: contain; border-radius: 6px;">
+              </div>
+              <div style="font-size: 11px; font-weight: 700;">TrueMoney</div>
+              <div style="font-size: 9px; color: #ff8200;">วอลเล็ท</div>
+            </div>
+          </div>
+
+          <!-- กล่องรายละเอียด QR หรือเลขบัญชี -->
+          <div id="paymentDetailBox" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+          </div>
+
+          <button class="btn-checkout" onclick="window.confirmOrder()" style="padding: 13px; font-size: 15px; width: 100%; border-radius: 12px; font-weight: 700; background: #fe2c55; border: none; color: white; cursor: pointer;">
+            ชำระเงิน
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Modal ประวัติคำสั่งซื้อและติดตามสถานะ -->
+ <div class="modal-overlay" id="ordersModal">
+   <div class="modal-content" style="max-width: 560px;">
+     <button class="modal-close" onclick="window.closeOrdersModal()">✕</button>
+     <h3 style="margin-bottom: 16px; font-size: 18px; font-weight: 700;">📋 คำสั่งซื้อ & ติดตามพัสดุ</h3>
+     <div id="ordersListContainer" style="max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;"></div>
+   </div>
+ </div>
+
+  <!-- Modal ติดต่อร้านค้า (Instagram & LINE) -->
+  <div class="modal-overlay" id="contactModal" style="display: none;">
+    <div class="modal-content" style="max-width: 420px; text-align: center; border-radius: 16px;">
+      <button class="modal-close" onclick="window.closeContactModal()">✕</button>
+      
+      <div style="font-size: 38px; margin-bottom: 8px;">💬</div>
+      <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 6px;">ติดต่อสอบถามร้านค้า</h3>
+      <p style="font-size: 13px; color: #888; margin-bottom: 20px;">เลือกช่องทางติดต่อที่คุณสะดวกเพื่อสอบถามหรือจองสินค้าได้เลยครับ</p>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
+        <!-- ช่องทาง Instagram -->
+        <a href="https://www.instagram.com/ysppry_olk25?exln=MWFkYXczNW1kaTVjdw==
+" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 12px; text-decoration: none; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(220, 39, 67, 0.25);">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" width="26" height="26" alt="IG" style="display: block;">
+            <div style="text-align: left;">
+              <div style="font-size: 15px; font-weight: 700;">Instagram (IG)</div>
+              <div style="font-size: 12px; opacity: 0.9;">@boxie_fanmarket</div>
+            </div>
+          </div>
+          <span style="font-size: 13px; background: rgba(255,255,255,0.25); padding: 4px 10px; border-radius: 20px;">ทัก DM →</span>
+        </a>
+
+        <!-- ช่องทาง LINE -->
+        <a href="https://line.me/ti/p/n3MSVfSnwA" target="_blank" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 12px; text-decoration: none; background: #06c755; color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(6, 199, 85, 0.25);">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="https://cdn-icons-png.flaticon.com/512/124/124027.png" width="26" height="26" alt="LINE" style="display: block;">
+            <div style="text-align: left;">
+              <div style="font-size: 15px; font-weight: 700;">LINE Official</div>
+              <div style="font-size: 12px; opacity: 0.9;">@boxie_store</div>
+            </div>
+          </div>
+          <span style="font-size: 13px; background: rgba(255,255,255,0.25); padding: 4px 10px; border-radius: 20px;">แอดไลน์ →</span>
+        </a>
+      </div>
+
+      <div style="font-size: 11px; color: #999; margin-top: 10px;">
+        มีแอดมินตอบกลับทุกวัน เวลา 09:00 - 18:00 น.
+      </div>
+    </div>
+  </div>
+
+    <!-- ⚙️ แผงควบคุมแอดมิน Modal (แบ่ง 2 ฝั่ง ซ้าย-ขวา) -->
+<div id="adminModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:999999; align-items:center; justify-content:center;">
+  <div style="background:#1e1e28; color:#fff; width:1100px; max-width:98%; max-height:90vh; border-radius:16px; padding:24px; overflow-y:auto; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:sans-serif; position:relative;">
+    
+    <!-- ส่วนหัว Modal -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #333; padding-bottom:12px;">
+      <h3 style="margin:0; font-size:20px; color: #ff334b;">⚙️ แผงควบคุมแอดมิน: รายงานและจัดการระบบ</h3>
+      <button onclick="document.getElementById('adminModal').style.display='none'" style="background:none; border:none; color:#aaa; font-size:24px; cursor:pointer;">✕</button>
+    </div>
+
+    <!-- ส่วนเนื้อหาหลัก: แบ่งเป็น 2 ฝั่ง (Grid Layout) -->
+    <div id="adminPanelContent" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      
+      <!-- 📦 ฝั่งซ้าย: สรุปยอดขาย, สินค้าขายดี และจัดการสต็อกสินค้า -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        
+        <!-- การ์ดรายงานยอดขาย & สินค้าขายดี -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div style="background: #121216; padding: 14px; border-radius: 10px; border: 1px solid #333;">
+            <div style="font-size: 13px; color: #aaa; margin-bottom: 6px;">📈 ยอดขายรวม</div>
+            <div style="font-size: 15px; font-weight: bold; color: #ff334b; margin-bottom: 4px;">วันนี้: <span id="reportDailySales">฿0</span></div>
+            <div style="font-size: 12px; color: #ccc;">เดือน: <span id="reportMonthlySales">฿0</span></div>
+            <div style="font-size: 12px; color: #888;">ปี: <span id="reportYearlySales">฿0</span></div>
+          </div>
+          <div style="background: #121216; padding: 14px; border-radius: 10px; border: 1px solid #333;">
+            <div style="font-size: 13px; color: #aaa; margin-bottom: 6px;">🔥 สินค้าขายดี</div>
+            <div id="reportTopProducts" style="font-size: 12px; color: #ddd; line-height: 1.4;">
+              กำลังโหลด...
+            </div>
+          </div>
+        </div>
+
+        <!-- ตารางจัดการสต็อกสินค้า -->
+        <div style="background: #121216; padding: 16px; border-radius: 10px; border: 1px solid #333;">
+          <h4 style="margin-top: 0; font-size: 14px; margin-bottom: 10px; color: #fff;">📦 จัดการสต็อกสินค้า</h4>
+          <div style="max-height: 250px; overflow-y: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 12px;">
+              <thead>
+                <tr style="border-bottom: 1px solid #333; color: #aaa;">
+                  <th style="padding: 6px;">ชื่อสินค้า</th>
+                  <th style="padding: 6px;">ราคา</th>
+                  <th style="padding: 6px;">สต็อก</th>
+                  <th style="padding: 6px; text-align: center;">ปรับ</th>
+                </tr>
+              </thead>
+              <tbody id="adminProductTableBody">
+                <!-- โหลดรายการสินค้า -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 🚚 ฝั่งขวา: จัดการออเดอร์และพัสดุ -->
+      <div style="background: #121216; padding: 18px; border-radius: 10px; border: 1px solid #333; display: flex; flex-direction: column;">
+        <h4 style="margin-top: 0; font-size: 15px; margin-bottom: 12px; color: #fff;">🚚 จัดการออเดอร์และพัสดุ</h4>
+        <div id="adminOrdersContainer" style="color: #ccc; font-size: 13px; flex-grow: 1; overflow-y: auto; max-height: 350px;">
+          กำลังโหลดรายการออเดอร์...
+        </div>
+      </div>
+
+    </div>
+
+    <!-- กรณีไม่ใช่แอดมิน -->
+    <div id="adminAccessDenied" style="display:none; text-align:center; padding: 40px; color: #ff334b; font-size: 16px;">
+      ⚠️ สำหรับผู้ดูแลระบบ (Admin) เท่านั้น
+    </div>
+
+  </div>
+</div>
+
+<!-- Script ควบคุมการทำงานหลังบ้านและดึงข้อมูลรายงาน -->
+<script>
+// 1. เขียนทับฟังก์ชันเปิด Modal ให้เรียกโหลดรายงานทุกครั้งแบบชัวร์ๆ
+window.openAdminModal = function() {
+  console.log("🔥 เปิดแผงควบคุมแอดมินและสั่งโหลดรายงาน...");
+  
+  const currentUser = localStorage.getItem('username');
+  const modal = document.getElementById('adminModal');
+  const content = document.getElementById('adminPanelContent');
+  const denied = document.getElementById('adminAccessDenied');
+
+  if (modal) {
+    modal.style.display = 'flex';
+    
+    if (currentUser === 'Ylbsee_25') {
+      if (content) content.style.display = 'grid';
+      if (denied) denied.style.display = 'none';
+      
+      // สั่งดึงข้อมูลรายงานและสต็อกทันทีที่เปิด!
+      if (typeof loadAdminReports === 'function') {
+        loadAdminReports();
+      } else {
+        console.error("❌ ไม่พบฟังก์ชัน loadAdminReports()");
+      }
+      
+    } else {
+      if (content) content.style.display = 'none';
+      if (denied) denied.style.display = 'block';
+    }
+  }
+};
+
+// 2. ฟังก์ชันดึงข้อมูลรายงานและสต็อก
+async function loadAdminReports() {
+  console.log("🚀 กำลังเริ่มดึงข้อมูลรายงานจากเซิร์ฟเวอร์...");
+  try {
+    const res = await fetch('/api/admin/reports');
+    const data = await res.json();
+    console.log("📦 ข้อมูลที่ได้รับจาก API:", data);
+
+    // แสดงผลยอดขาย
+    document.getElementById('reportDailySales').innerText = '฿' + Number(data.sales?.daily_sales || 0).toLocaleString();
+    document.getElementById('reportMonthlySales').innerText = '฿' + Number(data.sales?.monthly_sales || 0).toLocaleString();
+    document.getElementById('reportYearlySales').innerText = '฿' + Number(data.sales?.yearly_sales || 0).toLocaleString();
+
+    // แสดงผลสินค้าขายดี
+    const topContainer = document.getElementById('reportTopProducts');
+    if (data.topProducts && data.topProducts.length > 0) {
+      topContainer.innerHTML = data.topProducts.map((p, index) => 
+        `<div style="margin-bottom: 4px;">${index + 1}. ${p.title} <span style="color: #ff334b;">(ขายได้ ${p.total_sold} ชิ้น)</span></div>`
+      ).join('');
+    } else {
+      topContainer.innerHTML = '<span style="color: #888;">ยังไม่มีข้อมูลการขาย</span>';
+    }
+
+    // แสดงตารางจัดการสต็อกสินค้า
+    const tbody = document.getElementById('adminProductTableBody');
+    if (data.products && data.products.length > 0) {
+      tbody.innerHTML = data.products.map(prod => `
+        <tr style="border-bottom: 1px solid #2a2a38;">
+          <td style="padding: 6px; color: #fff;">${prod.title}</td>
+          <td style="padding: 6px; color: #ff334b;">฿${Number(prod.price).toLocaleString()}</td>
+          <td style="padding: 6px;"><span id="stock-val-${prod.id}" style="font-weight: bold; color: #33cc66;">${prod.stock || 0}</span></td>
+          <td style="padding: 6px; text-align: center;">
+            <button onclick="updateStock(${prod.id}, -1)" style="background: #444; color: #fff; border: none; padding: 2px 8px; border-radius: 4px; cursor: pointer;">-</button>
+            <button onclick="updateStock(${prod.id}, 1)" style="background: #ff334b; color: #fff; border: none; padding: 2px 8px; border-radius: 4px; cursor: pointer; margin-left: 4px;">+</button>
+          </td>
+        </tr>
+      `).join('');
+    } else {
+      tbody.innerHTML = `<tr><td colspan="4" style="padding: 15px; text-align: center; color: #888;">ไม่พบสินค้าในระบบ</td></tr>`;
+    }
+
+  } catch (err) {
+    console.error('❌ เกิดข้อผิดพลาดในการโหลดรายงาน:', err);
+  }
+}
+
+// 3. ฟังก์ชันกดปุ่มเพิ่ม/ลดสต็อก
+async function updateStock(productId, amount) {
+  const stockEl = document.getElementById(`stock-val-${productId}`);
+  let currentStock = parseInt(stockEl.innerText) + amount;
+  if (currentStock < 0) currentStock = 0;
+
+  try {
+    const res = await fetch('/api/admin/update-stock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, newStock: currentStock })
+    });
+    const result = await res.json();
+    if (result.success) {
+      stockEl.innerText = currentStock;
+    } else {
+      alert('อัปเดตสต็อกไม่สำเร็จ: ' + result.error);
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+  }
+}
+</script>
+
+<script src="app.js"></script>
+
+</body>
+</html>
