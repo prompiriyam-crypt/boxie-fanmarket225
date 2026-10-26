@@ -975,48 +975,35 @@ let currentCheckoutGrandTotal = 0;
 let qrTimerInterval = null;
 let qrRemainingSeconds = 300;
 
-// ⚠️ ใส่เลขอ้างอิงพร้อมเพย์ของคุณตรงนี้ (เลขบัตรประชาชน 13 หลัก)
+// เบอร์โทรศัพท์พร้อมเพย์ของเฮีย (ฝังไว้เรียบร้อยแล้ว)
 const PROMPTPAY_NUMBER = '0621485603'; 
 
 // ฟังก์ชันช่วยคำนวณ CRC16 สำหรับสร้างชุดข้อมูลพร้อมเพย์ (EMV Co) ฝั่ง JS
-// ฟังก์ชันสร้างชุดข้อมูลพร้อมเพย์ (PromptPay Payload) มาตรฐาน EMV Co รองรับทั้งเบอร์และเลข 13 หลัก
 function generatePromptPayPayload(id, amount) {
   let target = id.trim();
-  let targetField = '';
-
-  if (target.length === 13) {
-    // เลขประจำตัวประชาชน 13 หลัก
-    targetField = '0016A0000006770101030113' + target;
-  } else {
-    // เบอร์โทรศัพท์มือถือ (แปลงเป็นรูปแบบสากล 66...)
-    if (target.startsWith('0')) {
-      target = '66' + target.substring(1);
-    }
-    targetField = '0016A0000006770101010113' + target;
+  if (target.length === 10 && target.startsWith('0')) {
+    target = '0066' + target.substring(1);
   }
+  
+  let targetField = '0016A000000677010101' + target;
 
-  // Merchant Account Information (Tag 29)
   const merchantAccount = '00' + ('0' + targetField.length).slice(-2) + targetField;
   const merchantTag = '29' + ('0' + merchantAccount.length).slice(-2) + merchantAccount;
-
-  // รวมชุดข้อมูลพื้นฐาน
+  
   let data = 
-    '000201' + // Payload Format Indicator (Version 01)
-    '010212' + // Point of Initiation Method (12 = Dynamic QR มีการกำหนดจำนวนเงิน)
+    '000201' + 
+    '010212' + 
     merchantTag + 
-    '5303764' + // Transaction Currency (764 = THB)
-    '5802TH';   // Country Code (TH)
+    '5303764' + 
+    '5802TH';
 
-  // กำหนดจำนวนเงิน (Tag 54)
   if (amount && amount > 0) {
     const amtStr = Number(amount).toFixed(2);
     data += '54' + ('0' + amtStr.length).slice(-2) + amtStr;
   }
 
-  // checksum CRC16 placeholder
   data += '6304';
 
-  // คำนวณ CRC16 (CCITT-FALSE)
   let crc = 0xFFFF;
   for (let i = 0; i < data.length; i++) {
     crc ^= data.charCodeAt(i) << 8;
@@ -1203,7 +1190,7 @@ window.closeCheckoutModal = function() {
   document.getElementById('checkoutModal').style.display = 'none';
 };
 
-// สลับช่องทางชำระเงิน (ใช้ QR Code แบบวาดสดบนหน้าเว็บ ชัวร์ 100%)
+// สลับช่องทางชำระเงิน (ใช้ QR Code แบบวาดสดผ่าน Library ที่เพิ่มใน HTML พร้อมเบอร์ 0621485603 ครบถ้วน)
 window.selectPaymentMethod = function(method) {
   selectedPaymentMethod = method;
 
@@ -1240,11 +1227,10 @@ window.selectPaymentMethod = function(method) {
       <div style="font-size: 10px; color: #888;">BOXIE OFFICIAL STORE (พร้อมเพย์)</div>
     `;
 
-    // สั่งวาดรูป QR Code ลงใน div ทันทีโดยใช้ไลบรารีมาตรฐาน
     setTimeout(() => {
       const container = document.getElementById('qrcodeCanvas');
       if (container) {
-        container.innerHTML = ''; //เคลียร์ของเก่า
+        container.innerHTML = '';
         new QRCode(container, {
           text: payload,
           width: 130,
